@@ -407,54 +407,63 @@
     <button class="refresh-btn" id="refreshBtn" title="Refresh Data">⟳</button>
 
     <script>
+        // ==================== 修复版本 ====================
+        // 将所有的变量声明和函数定义移到最前面，避免引用错误
+        
         // ！！！ 重要：请将下面的 API_BASE_URL 改为您自己的 API 地址 ！！！
         const API_BASE_URL = 'https://redsncfamiens.dmytrothemir.workers.dev';
         // 如果您的图片放在其他目录，请修改下面的 IMAGES_BASE_PATH
         const IMAGES_BASE_PATH = './';
         
-        // Get trip ID from URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlTripId = urlParams.get('trip');
+        // 提前获取所有DOM元素的引用
+        let tripIdInput, loadBtn, loadingEl, errorEl, trainInfoEl, trainDisplayEl, refreshBtn;
         
-        if (urlTripId) {
-            document.getElementById('tripIdInput').value = urlTripId;
-            loadTrainData(urlTripId);
+        // UI helper functions - 提前定义
+        function showLoading() {
+            if (loadingEl) loadingEl.style.display = 'block';
         }
         
-        // DOM elements
-        const tripIdInput = document.getElementById('tripIdInput');
-        const loadBtn = document.getElementById('loadBtn');
-        const loadingEl = document.getElementById('loading');
-        const errorEl = document.getElementById('error');
-        const trainInfoEl = document.getElementById('trainInfo');
-        const trainDisplayEl = document.getElementById('trainDisplay');
-        const refreshBtn = document.getElementById('refreshBtn');
+        function hideLoading() {
+            if (loadingEl) loadingEl.style.display = 'none';
+        }
         
-        // Event listeners
-        loadBtn.addEventListener('click', () => {
-            const tripId = tripIdInput.value.trim();
-            if (tripId) {
-                loadTrainData(tripId);
-                // Update URL without reloading page
-                const newUrl = window.location.pathname + '?trip=' + encodeURIComponent(tripId);
-                window.history.pushState({}, '', newUrl);
-            } else {
-                showError('Please enter a Trip ID');
+        function showError(message) {
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
             }
-        });
+        }
         
-        tripIdInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                loadBtn.click();
-            }
-        });
+        function hideError() {
+            if (errorEl) errorEl.style.display = 'none';
+        }
         
-        refreshBtn.addEventListener('click', () => {
-            const tripId = tripIdInput.value.trim() || urlTripId;
-            if (tripId) {
-                loadTrainData(tripId);
+        function showTrainInfo() {
+            if (trainInfoEl) trainInfoEl.style.display = 'block';
+        }
+        
+        function hideTrainInfo() {
+            if (trainInfoEl) trainInfoEl.style.display = 'none';
+        }
+        
+        function showTrainDisplay() {
+            if (trainDisplayEl) trainDisplayEl.style.display = 'flex';
+        }
+        
+        function hideTrainDisplay() {
+            if (trainDisplayEl) trainDisplayEl.style.display = 'none';
+        }
+        
+        // Helper function to get crowd description
+        function getCrowdDescription(level) {
+            switch (level) {
+                case 0: return 'UNKNOWN';
+                case 1: return 'Почти пусто';
+                case 2: return 'Есть немного мест';
+                case 3: return 'Очень забито';
+                default: return 'UNKNOWN';
             }
-        });
+        }
         
         // Train data loading function
         async function loadTrainData(tripId) {
@@ -632,65 +641,70 @@
             });
         }
         
-        // Helper function to get crowd description
-        function getCrowdDescription(level) {
-            switch (level) {
-                case 0: return 'UNKNOWN';
-                case 1: return 'Почти пусто';
-                case 2: return 'Есть немного мест';
-                case 3: return 'Очень забито';
-                default: return 'UNKNOWN';
+        // 初始化函数
+        function init() {
+            // 获取DOM元素的引用
+            tripIdInput = document.getElementById('tripIdInput');
+            loadBtn = document.getElementById('loadBtn');
+            loadingEl = document.getElementById('loading');
+            errorEl = document.getElementById('error');
+            trainInfoEl = document.getElementById('trainInfo');
+            trainDisplayEl = document.getElementById('trainDisplay');
+            refreshBtn = document.getElementById('refreshBtn');
+            
+            // Get trip ID from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlTripId = urlParams.get('trip');
+            
+            if (urlTripId) {
+                tripIdInput.value = urlTripId;
+                loadTrainData(urlTripId);
             }
+            
+            // Event listeners
+            loadBtn.addEventListener('click', () => {
+                const tripId = tripIdInput.value.trim();
+                if (tripId) {
+                    loadTrainData(tripId);
+                    // Update URL without reloading page
+                    const newUrl = window.location.pathname + '?trip=' + encodeURIComponent(tripId);
+                    window.history.pushState({}, '', newUrl);
+                } else {
+                    showError('Please enter a Trip ID');
+                }
+            });
+            
+            tripIdInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    loadBtn.click();
+                }
+            });
+            
+            refreshBtn.addEventListener('click', () => {
+                const tripId = tripIdInput.value.trim() || urlTripId;
+                if (tripId) {
+                    loadTrainData(tripId);
+                }
+            });
+            
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', () => {
+                const params = new URLSearchParams(window.location.search);
+                const tripId = params.get('trip');
+                if (tripId) {
+                    tripIdInput.value = tripId;
+                    loadTrainData(tripId);
+                }
+            });
+            
+            // Initial check for API availability
+            console.log('Train Crowd Monitor initialized');
+            console.log('API Base URL:', API_BASE_URL);
+            console.log('Images Base Path:', IMAGES_BASE_PATH);
         }
         
-        // UI helper functions
-        function showLoading() {
-            loadingEl.style.display = 'block';
-        }
-        
-        function hideLoading() {
-            loadingEl.style.display = 'none';
-        }
-        
-        function showError(message) {
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-        }
-        
-        function hideError() {
-            errorEl.style.display = 'none';
-        }
-        
-        function showTrainInfo() {
-            trainInfoEl.style.display = 'block';
-        }
-        
-        function hideTrainInfo() {
-            trainInfoEl.style.display = 'none';
-        }
-        
-        function showTrainDisplay() {
-            trainDisplayEl.style.display = 'flex';
-        }
-        
-        function hideTrainDisplay() {
-            trainDisplayEl.style.display = 'none';
-        }
-        
-        // Handle browser back/forward buttons
-        window.addEventListener('popstate', () => {
-            const params = new URLSearchParams(window.location.search);
-            const tripId = params.get('trip');
-            if (tripId) {
-                document.getElementById('tripIdInput').value = tripId;
-                loadTrainData(tripId);
-            }
-        });
-        
-        // Initial check for API availability
-        console.log('Train Crowd Monitor initialized');
-        console.log('API Base URL:', API_BASE_URL);
-        console.log('Images Base Path:', IMAGES_BASE_PATH);
+        // 等待页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
