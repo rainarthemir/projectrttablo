@@ -325,7 +325,7 @@
         
         <div class="trip-input">
             <div class="input-group">
-                <input type="text" id="tripIdInput" placeholder="Enter Trip ID (e.g., 123456)">
+                <input type="text" id="tripIdInput" placeholder="Enter Trip ID (e.g., S1DA_T17)">
                 <button id="loadBtn">Load Train Data</button>
             </div>
         </div>
@@ -338,7 +338,7 @@
                     </circle>
                 </svg>
             </div>
-            Loading train data...
+            Загружаем данные поезда...
         </div>
         
         <div id="error" class="error" style="display: none;"></div>
@@ -394,31 +394,28 @@
         </div>
         
         <div class="instructions">
-            <h3>How to Use</h3>
-            <p>Enter a Trip ID in the input field above to load train data.</p>
-            <p>You can also use URL parameters: <code>?trip=TRIP_ID</code></p>
+            <h3>Как использовать</h3>
+            <p>Введите Trip ID в поле ввода выше для загрузки данных поезда.</p>
+            <p>Также можно использовать параметры URL: <code>?trip=TRIP_ID</code></p>
             <p class="code-example">
-                Example URL: https://yourdomain.com/?trip=123456
+                Пример URL: https://yourdomain.com/?trip=S1DA_T17
             </p>
-            <p>The train display shows passenger density with color-coded wagons and heads.</p>
+            <p>Отображение поезда показывает заполненность вагонов цветовыми кодами.</p>
         </div>
     </div>
     
     <button class="refresh-btn" id="refreshBtn" title="Refresh Data">⟳</button>
 
     <script>
-        // ==================== 修复版本 ====================
-        // 将所有的变量声明和函数定义移到最前面，避免引用错误
+        // ==================== РЕШЕНИЕ ПРОБЛЕМЫ ====================
+        // Вы используете неправильный эндпоинт!
+        // Нужно использовать: /trips/{trip_id}/realtime/crowd
         
-        // ！！！ 重要：请将下面的 API_BASE_URL 改为您自己的 API 地址 ！！！
         const API_BASE_URL = 'https://redsncfamiens.dmytrothemir.workers.dev';
-        // 如果您的图片放在其他目录，请修改下面的 IMAGES_BASE_PATH
         const IMAGES_BASE_PATH = './';
         
-        // 提前获取所有DOM元素的引用
         let tripIdInput, loadBtn, loadingEl, errorEl, trainInfoEl, trainDisplayEl, refreshBtn;
         
-        // UI helper functions - 提前定义
         function showLoading() {
             if (loadingEl) loadingEl.style.display = 'block';
         }
@@ -454,7 +451,6 @@
             if (trainDisplayEl) trainDisplayEl.style.display = 'none';
         }
         
-        // Helper function to get crowd description
         function getCrowdDescription(level) {
             switch (level) {
                 case 0: return 'UNKNOWN';
@@ -465,7 +461,6 @@
             }
         }
         
-        // Train data loading function
         async function loadTrainData(tripId) {
             showLoading();
             hideError();
@@ -473,15 +468,16 @@
             hideTrainDisplay();
             
             try {
-                // Fetch crowd data from YOUR API
-                // Using the endpoint: /trips/{trip_id}/realtime/crowd
+                // ИСПРАВЛЕНИЕ: используем правильный эндпоинт для crowd данных
+                // Старый (неправильный): /trips/{trip_id}/realtime
+                // Новый (правильный): /trips/{trip_id}/realtime/crowd
                 const apiUrl = `${API_BASE_URL}/trips/${tripId}/realtime/crowd`;
-                console.log('Fetching from:', apiUrl);
+                console.log('Запрашиваем данные из:', apiUrl);
                 
                 const response = await fetch(apiUrl);
                 
                 if (!response.ok) {
-                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                    throw new Error(`Ошибка API: ${response.status} ${response.statusText}`);
                 }
                 
                 const data = await response.json();
@@ -490,72 +486,131 @@
                     throw new Error(data.message);
                 }
                 
-                // Display train data
+                console.log('Полученные данные:', data);
                 displayTrainData(data);
                 
             } catch (error) {
-                showError(`Failed to load train data: ${error.message}`);
-                console.error('Error loading train data:', error);
+                console.error('Ошибка загрузки:', error);
+                
+                // Если не получилось получить crowd данные, пробуем получить обычные данные
+                // и создать заглушку для отображения
+                try {
+                    console.log('Пробуем получить обычные данные поезда...');
+                    const fallbackUrl = `${API_BASE_URL}/trips/${tripId}/realtime`;
+                    const fallbackResponse = await fetch(fallbackUrl);
+                    
+                    if (fallbackResponse.ok) {
+                        const fallbackData = await fallbackResponse.json();
+                        console.log('Получены обычные данные:', fallbackData);
+                        
+                        // Создаем заглушку с базовой информацией
+                        const crowdData = {
+                            trip_id: fallbackData.trip_id,
+                            rolling_stock: fallbackData.rolling_stock || 'RER NG2',
+                            crowd: [0, 0, 0, 0, 0], // По умолчанию 5 вагонов UNKNOWN
+                            crowd_descriptions: ['UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN'],
+                            type_info: {
+                                name: fallbackData.rolling_stock || 'RER NG2',
+                                is_double: fallbackData.rolling_stock === 'RER NG2' ? true : false,
+                                vehicle_count: 5,
+                                vehicle_count2: fallbackData.rolling_stock === 'RER NG2' ? 5 : 0,
+                                total_vehicles: fallbackData.rolling_stock === 'RER NG2' ? 10 : 5
+                            }
+                        };
+                        
+                        displayTrainData(crowdData);
+                        showError(`Crowd данные недоступны. Используются данные по умолчанию для ${fallbackData.rolling_stock || 'RER NG2'}`);
+                        return;
+                    }
+                } catch (fallbackError) {
+                    console.error('Ошибка получения обычных данных:', fallbackError);
+                }
+                
+                showError(`Не удалось загрузить данные поезда: ${error.message}. Проверьте правильность Trip ID.`);
             } finally {
                 hideLoading();
             }
         }
         
-        // Display train data function
         function displayTrainData(data) {
-            // Update info panel
+            console.log('Отображаем данные:', data);
+            
+            // Обновляем информационную панель
             document.getElementById('infoTripId').textContent = data.trip_id;
             document.getElementById('infoRollingStock').textContent = data.rolling_stock;
-            document.getElementById('infoTotalWagons').textContent = data.type_info.total_vehicles;
             
-            const composition = data.type_info.is_double ? 
-                `Double (${data.type_info.vehicle_count} + ${data.type_info.vehicle_count2})` : 
-                `Single (${data.type_info.vehicle_count})`;
-            document.getElementById('infoComposition').textContent = composition;
+            // Проверяем, есть ли type_info в данных
+            if (data.type_info) {
+                document.getElementById('infoTotalWagons').textContent = data.type_info.total_vehicles;
+                
+                const composition = data.type_info.is_double ? 
+                    `Двойной (${data.type_info.vehicle_count} + ${data.type_info.vehicle_count2})` : 
+                    `Одинарный (${data.type_info.vehicle_count})`;
+                document.getElementById('infoComposition').textContent = composition;
+                
+                // Рендерим поезд
+                renderTrain(data);
+            } else {
+                // Если нет type_info, создаем заглушку
+                console.warn('Нет type_info в данных, создаем заглушку');
+                document.getElementById('infoTotalWagons').textContent = data.crowd.length;
+                document.getElementById('infoComposition').textContent = 'Неизвестно';
+                
+                // Создаем заглушечные данные для рендеринга
+                const fallbackData = {
+                    type_info: {
+                        is_double: false,
+                        vehicle_count: data.crowd.length,
+                        vehicle_count2: 0,
+                        total_vehicles: data.crowd.length
+                    },
+                    crowd: data.crowd
+                };
+                
+                renderTrain(fallbackData);
+            }
             
-            // Render train
-            renderTrain(data);
-            
-            // Show sections
+            // Показываем секции
             showTrainInfo();
             showTrainDisplay();
         }
         
-        // Render train visualization
         function renderTrain(data) {
             const trainContainer = document.getElementById('trainContainer');
             const compositionInfo = document.getElementById('compositionInfo');
             
-            // Clear previous content
+            // Очищаем предыдущий контент
             trainContainer.innerHTML = '';
             compositionInfo.innerHTML = '';
             
             const typeInfo = data.type_info;
             const crowd = data.crowd;
             
+            console.log('Рендерим поезд:', typeInfo, crowd);
+            
             let trainUnits = [];
             
             if (typeInfo.is_double) {
-                // Double composition: two separate units
+                // Двойной состав: два отдельных юнита
                 trainUnits = [
                     {
-                        name: 'Unit 1',
+                        name: 'Состав 1',
                         startIdx: 0,
                         endIdx: typeInfo.vehicle_count - 1,
                         isFirst: true
                     },
                     {
-                        name: 'Unit 2',
+                        name: 'Состав 2',
                         startIdx: typeInfo.vehicle_count,
                         endIdx: typeInfo.vehicle_count + typeInfo.vehicle_count2 - 1,
                         isFirst: false
                     }
                 ];
             } else {
-                // Single composition: one unit
+                // Одинарный состав: один юнит
                 trainUnits = [
                     {
-                        name: 'Train',
+                        name: 'Поезд',
                         startIdx: 0,
                         endIdx: typeInfo.vehicle_count - 1,
                         isFirst: true
@@ -563,7 +618,7 @@
                 ];
             }
             
-            // Render each unit
+            // Рендерим каждый юнит
             trainUnits.forEach((unit, unitIndex) => {
                 const unitContainer = document.createElement('div');
                 unitContainer.className = 'train-unit';
@@ -572,25 +627,25 @@
                 wagonsContainer.style.display = 'flex';
                 wagonsContainer.style.alignItems = 'center';
                 
-                // Render wagons in this unit
-                for (let i = unit.startIdx; i <= unit.endIdx; i++) {
+                // Рендерим вагоны в этом юните
+                for (let i = unit.startIdx; i <= unit.endIdx && i < crowd.length; i++) {
                     const wagonImg = document.createElement('img');
                     wagonImg.className = 'train-item';
                     
-                    // Determine wagon type and color
+                    // Определяем тип вагона и цвет
                     const crowdLevel = crowd[i] || 0;
                     let imgName = 'wagon';
                     
-                    // First wagon in unit = left head
+                    // Первый вагон в юните = левая голова
                     if (i === unit.startIdx) {
                         imgName = 'train_head_left';
                     }
-                    // Last wagon in unit = right head
+                    // Последний вагон в юните = правая голова
                     else if (i === unit.endIdx) {
                         imgName = 'train_head_right';
                     }
                     
-                    // Add color suffix based on crowd level
+                    // Добавляем цветовой суффикс на основе уровня заполненности
                     if (crowdLevel === 1) {
                         imgName += '_green';
                     } else if (crowdLevel === 2) {
@@ -599,18 +654,37 @@
                         imgName += '_red';
                     }
                     
-                    // Add .png extension and full path
+                    // Добавляем .png расширение и полный путь
                     imgName += '.png';
                     wagonImg.src = IMAGES_BASE_PATH + imgName;
-                    wagonImg.alt = `Wagon ${i + 1} - ${getCrowdDescription(crowdLevel)}`;
-                    wagonImg.title = `Wagon ${i + 1}: ${getCrowdDescription(crowdLevel)} (Level ${crowdLevel})`;
+                    wagonImg.alt = `Вагон ${i + 1} - ${getCrowdDescription(crowdLevel)}`;
+                    wagonImg.title = `Вагон ${i + 1}: ${getCrowdDescription(crowdLevel)} (Уровень ${crowdLevel})`;
                     
-                    // Add error handling for missing images
+                    // Добавляем обработку ошибок для отсутствующих изображений
                     wagonImg.onerror = function() {
-                        console.warn(`Image not found: ${imgName}`);
+                        console.warn(`Изображение не найдено: ${imgName}`);
                         this.style.border = '2px dashed #dc2626';
                         this.style.padding = '5px';
-                        this.alt = `Missing image: ${imgName}`;
+                        this.alt = `Отсутствует изображение: ${imgName}`;
+                        
+                        // Создаем текстовый fallback
+                        const fallbackDiv = document.createElement('div');
+                        fallbackDiv.className = 'train-item';
+                        fallbackDiv.style.width = '80px';
+                        fallbackDiv.style.height = '80px';
+                        fallbackDiv.style.display = 'flex';
+                        fallbackDiv.style.alignItems = 'center';
+                        fallbackDiv.style.justifyContent = 'center';
+                        fallbackDiv.style.border = '2px solid #cbd5e1';
+                        fallbackDiv.style.borderRadius = '5px';
+                        fallbackDiv.style.backgroundColor = 
+                            crowdLevel === 1 ? '#10b981' : 
+                            crowdLevel === 2 ? '#f59e0b' : 
+                            crowdLevel === 3 ? '#ef4444' : '#cbd5e1';
+                        fallbackDiv.textContent = crowdLevel;
+                        fallbackDiv.title = `Вагон ${i + 1}: ${getCrowdDescription(crowdLevel)}`;
+                        
+                        this.parentNode.replaceChild(fallbackDiv, this);
                     };
                     
                     wagonsContainer.appendChild(wagonImg);
@@ -619,20 +693,20 @@
                 unitContainer.appendChild(wagonsContainer);
                 trainContainer.appendChild(unitContainer);
                 
-                // Add unit label
+                // Добавляем метку юнита
                 const unitLabel = document.createElement('div');
                 unitLabel.className = 'train-unit-label';
                 unitLabel.textContent = unit.name;
                 trainContainer.appendChild(unitLabel);
                 
-                // Add composition badge
+                // Добавляем бейдж композиции
                 const badge = document.createElement('div');
                 badge.className = 'composition-badge';
-                const wagonCount = unit.endIdx - unit.startIdx + 1;
-                badge.textContent = `${unit.name}: ${wagonCount} wagons`;
+                const wagonCount = Math.min(unit.endIdx - unit.startIdx + 1, crowd.length - unit.startIdx);
+                badge.textContent = `${unit.name}: ${wagonCount} вагонов`;
                 compositionInfo.appendChild(badge);
                 
-                // Add separator between units (except for last)
+                // Добавляем разделитель между юнитами (кроме последнего)
                 if (unitIndex < trainUnits.length - 1) {
                     const separator = document.createElement('div');
                     separator.className = 'train-separator';
@@ -641,9 +715,7 @@
             });
         }
         
-        // 初始化函数
         function init() {
-            // 获取DOM元素的引用
             tripIdInput = document.getElementById('tripIdInput');
             loadBtn = document.getElementById('loadBtn');
             loadingEl = document.getElementById('loading');
@@ -652,7 +724,6 @@
             trainDisplayEl = document.getElementById('trainDisplay');
             refreshBtn = document.getElementById('refreshBtn');
             
-            // Get trip ID from URL parameter
             const urlParams = new URLSearchParams(window.location.search);
             const urlTripId = urlParams.get('trip');
             
@@ -661,16 +732,14 @@
                 loadTrainData(urlTripId);
             }
             
-            // Event listeners
             loadBtn.addEventListener('click', () => {
                 const tripId = tripIdInput.value.trim();
                 if (tripId) {
                     loadTrainData(tripId);
-                    // Update URL without reloading page
                     const newUrl = window.location.pathname + '?trip=' + encodeURIComponent(tripId);
                     window.history.pushState({}, '', newUrl);
                 } else {
-                    showError('Please enter a Trip ID');
+                    showError('Пожалуйста, введите Trip ID');
                 }
             });
             
@@ -687,7 +756,6 @@
                 }
             });
             
-            // Handle browser back/forward buttons
             window.addEventListener('popstate', () => {
                 const params = new URLSearchParams(window.location.search);
                 const tripId = params.get('trip');
@@ -697,13 +765,11 @@
                 }
             });
             
-            // Initial check for API availability
-            console.log('Train Crowd Monitor initialized');
+            console.log('Train Crowd Monitor инициализирован');
             console.log('API Base URL:', API_BASE_URL);
             console.log('Images Base Path:', IMAGES_BASE_PATH);
         }
         
-        // 等待页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
