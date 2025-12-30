@@ -13,14 +13,14 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #003366 0%, #00509e 100%);
+            background: #f5f7fa;
             min-height: 100vh;
             color: #333;
         }
         
         /* SNCF Header - Full Width */
         .sncf-header {
-            background: #fff;
+            background: #003366;
             padding: 15px 5%;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: flex;
@@ -49,127 +49,86 @@
         }
         
         .sncf-title h1 {
-            color: #003366;
+            color: white;
             font-size: 22px;
             font-weight: 600;
             margin-bottom: 2px;
         }
         
         .sncf-title h2 {
-            color: #666;
+            color: #a8c6ff;
             font-size: 14px;
             font-weight: 400;
         }
         
         .header-info {
             text-align: right;
-            color: #666;
+            color: white;
             font-size: 14px;
-        }
-        
-        /* URL Info - Full Width */
-        .url-info {
-            background: #e3f2fd;
-            padding: 15px 5%;
-            border-bottom: 1px solid #bbdefb;
-            font-size: 14px;
-            color: #1565c0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-        
-        .url-info a {
-            color: #1565c0;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .url-info a:hover {
-            text-decoration: underline;
         }
         
         /* Main Content - Full Width */
         .main-content {
             width: 100%;
-            background: #fff;
-            margin-top: 0;
         }
         
-        /* Stop Info Banner - Full Width */
+        /* Stop Banner - Full Width */
         .stop-banner {
-            background: linear-gradient(to right, #003366, #00509e);
+            background: linear-gradient(135deg, #003366 0%, #00509e 100%);
             color: white;
             padding: 30px 5%;
             position: relative;
             overflow: hidden;
             width: 100%;
-        }
-        
-        .stop-banner::before {
-            content: "";
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
+            text-align: center;
         }
         
         .stop-banner h2 {
-            font-size: 36px;
+            font-size: 42px;
             font-weight: 600;
             margin-bottom: 10px;
             position: relative;
             z-index: 1;
-        }
-        
-        .stop-meta {
-            display: flex;
-            gap: 20px;
-            font-size: 16px;
-            opacity: 0.9;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .stop-id {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
-            border-radius: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
         /* Mode Toggle - Full Width */
         .mode-toggle {
             display: flex;
-            background: #f5f7fa;
-            border-bottom: 1px solid #e1e5eb;
             width: 100%;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
         .mode-btn {
             flex: 1;
-            padding: 20px;
+            padding: 25px;
             text-align: center;
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 22px;
+            font-weight: 700;
             color: #666;
-            background: none;
+            background: white;
             border: none;
             cursor: pointer;
             transition: all 0.3s;
             position: relative;
+            letter-spacing: 1px;
         }
         
         .mode-btn:hover {
-            background: rgba(0, 51, 102, 0.05);
+            background: #f8f9fa;
         }
         
         .mode-btn.active {
-            color: #003366;
-            background: white;
+            color: white;
+        }
+        
+        .mode-btn.departures.active {
+            background: #003366;
+        }
+        
+        .mode-btn.arrivals.active {
+            background: #008542;
         }
         
         .mode-btn.active::after {
@@ -179,7 +138,27 @@
             left: 0;
             width: 100%;
             height: 4px;
+        }
+        
+        .mode-btn.departures.active::after {
             background: #ff6b00;
+        }
+        
+        .mode-btn.arrivals.active::after {
+            background: #00cc66;
+        }
+        
+        /* Table Headers */
+        .table-headers {
+            display: grid;
+            grid-template-columns: 120px 1fr 180px;
+            gap: 20px;
+            padding: 20px 5%;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            color: #003366;
+            font-size: 18px;
         }
         
         /* Departures List - Full Width */
@@ -188,54 +167,86 @@
             padding: 0;
         }
         
+        /* Column layout */
         .departure-item {
+            display: grid;
+            grid-template-columns: 120px 1fr 180px;
+            gap: 20px;
             padding: 25px 5%;
-            border-bottom: 1px solid #eef2f7;
-            display: flex;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
             align-items: center;
-            gap: 25px;
-            transition: background-color 0.2s;
-            width: 100%;
+            transition: all 0.3s;
+            position: relative;
         }
         
         .departure-item:hover {
-            background-color: #f9fbfd;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            z-index: 1;
         }
         
+        /* Departures background */
+        .departures-section .departure-item {
+            background: #e6f0ff;
+        }
+        
+        .departures-section .departure-item:nth-child(odd) {
+            background: #d1e3ff;
+        }
+        
+        /* Arrivals background */
+        .arrivals-section .departure-item {
+            background: #e6fff2;
+        }
+        
+        .arrivals-section .departure-item:nth-child(odd) {
+            background: #d1ffeb;
+        }
+        
+        /* Route Badge - Much larger */
         .route-badge {
-            min-width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            font-weight: 800;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            font-size: 36px;
+            font-weight: 900;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
             color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            flex-shrink: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin: 0 auto;
         }
         
-        .route-info {
-            flex: 1;
-        }
-        
-        .route-destination {
-            font-size: 28px;
-            font-weight: 600;
-            color: #003366;
-            margin-bottom: 10px;
+        /* Destination/Provenance - Much larger and centered */
+        .destination-info {
             display: flex;
-            align-items: center;
-            gap: 15px;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 20px;
+            min-height: 100px;
+        }
+        
+        .destination {
+            font-size: 32px;
+            font-weight: 700;
+            color: #003366;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        
+        .arrivals-section .destination {
+            color: #008542;
         }
         
         .route-status {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
-            padding: 6px 15px;
-            border-radius: 15px;
+            padding: 8px 18px;
+            border-radius: 20px;
+            display: inline-block;
+            width: fit-content;
         }
         
         .status-on_time {
@@ -258,36 +269,35 @@
             color: #757575;
         }
         
-        .time-info {
-            text-align: right;
-            min-width: 180px;
-            flex-shrink: 0;
-        }
-        
-        .scheduled-time {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 8px;
-        }
-        
-        .real-time {
-            font-size: 36px;
-            font-weight: 700;
+        /* Time Section */
+        .time-section {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
+            justify-content: center;
+            min-height: 100px;
+        }
+        
+        .real-time {
+            font-size: 40px;
+            font-weight: 900;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            line-height: 1.2;
         }
         
         .original-time {
             text-decoration: line-through;
             color: #999;
-            font-size: 24px;
-            font-weight: 400;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 4px;
         }
         
         .amended-time {
-            font-size: 36px;
-            font-weight: 700;
+            font-size: 40px;
+            font-weight: 900;
         }
         
         .time-on_time {
@@ -303,12 +313,16 @@
         }
         
         .canceled-label {
-            font-size: 20px;
+            font-size: 22px;
             color: #c62828;
             font-weight: bold;
             text-transform: uppercase;
-            margin-top: 5px;
+            margin-top: 8px;
             letter-spacing: 1px;
+            background: rgba(255,255,255,0.9);
+            padding: 5px 15px;
+            border-radius: 10px;
+            border: 2px solid #c62828;
         }
         
         /* Empty State */
@@ -316,6 +330,7 @@
             padding: 80px 5%;
             text-align: center;
             color: #666;
+            background: white;
         }
         
         .empty-icon {
@@ -339,6 +354,7 @@
         .loading {
             padding: 80px 5%;
             text-align: center;
+            background: white;
         }
         
         .loading-spinner {
@@ -359,7 +375,7 @@
         /* Footer Info - Full Width */
         .footer-info {
             padding: 25px 5%;
-            background: #f5f7fa;
+            background: white;
             border-top: 1px solid #e1e5eb;
             display: flex;
             justify-content: space-between;
@@ -367,6 +383,7 @@
             font-size: 16px;
             color: #666;
             width: 100%;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
         
         .update-time {
@@ -384,7 +401,7 @@
             font-weight: 600;
             font-size: 16px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
         
         .update-btn:hover {
@@ -398,6 +415,7 @@
             padding: 80px 5%;
             text-align: center;
             color: #c62828;
+            background: white;
         }
         
         .error-icon {
@@ -405,38 +423,79 @@
             margin-bottom: 30px;
         }
         
+        /* URL Info */
+        .url-info {
+            background: #e3f2fd;
+            padding: 15px 5%;
+            border-bottom: 1px solid #bbdefb;
+            font-size: 14px;
+            color: #1565c0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .url-info a {
+            color: #1565c0;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .url-info a:hover {
+            text-decoration: underline;
+        }
+        
         /* Responsive */
         @media (max-width: 1200px) {
-            .route-destination {
-                font-size: 24px;
+            .destination {
+                font-size: 28px;
             }
             
             .real-time {
-                font-size: 32px;
+                font-size: 36px;
             }
             
             .amended-time {
+                font-size: 36px;
+            }
+            
+            .route-badge {
+                width: 90px;
+                height: 90px;
                 font-size: 32px;
             }
         }
         
         @media (max-width: 992px) {
-            .route-destination {
-                font-size: 22px;
+            .departure-item {
+                grid-template-columns: 100px 1fr 160px;
+                gap: 15px;
+                padding: 20px 5%;
+            }
+            
+            .table-headers {
+                grid-template-columns: 100px 1fr 160px;
+                gap: 15px;
+                padding: 15px 5%;
+            }
+            
+            .destination {
+                font-size: 26px;
             }
             
             .real-time {
-                font-size: 28px;
+                font-size: 32px;
             }
             
             .amended-time {
-                font-size: 28px;
+                font-size: 32px;
             }
             
             .route-badge {
-                min-width: 70px;
-                height: 70px;
-                font-size: 24px;
+                width: 80px;
+                height: 80px;
+                font-size: 28px;
             }
         }
         
@@ -452,59 +511,53 @@
                 text-align: center;
             }
             
-            .url-info {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-                padding: 15px 20px;
-            }
-            
-            .stop-banner {
-                padding: 25px 20px;
-            }
-            
             .stop-banner h2 {
-                font-size: 28px;
+                font-size: 32px;
+            }
+            
+            .mode-btn {
+                padding: 20px 10px;
+                font-size: 18px;
             }
             
             .departure-item {
-                padding: 20px;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 20px;
-            }
-            
-            .route-badge {
-                width: 70px;
-                height: 70px;
-                font-size: 22px;
-            }
-            
-            .route-destination {
-                font-size: 20px;
-                flex-direction: column;
-                align-items: flex-start;
+                grid-template-columns: 80px 1fr 140px;
                 gap: 10px;
+                padding: 15px 20px;
             }
             
-            .time-info {
-                text-align: left;
-                width: 100%;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            
-            .scheduled-time {
+            .table-headers {
+                grid-template-columns: 80px 1fr 140px;
+                gap: 10px;
+                padding: 12px 20px;
                 font-size: 16px;
+            }
+            
+            .destination {
+                font-size: 22px;
             }
             
             .real-time {
                 font-size: 28px;
             }
             
+            .amended-time {
+                font-size: 28px;
+            }
+            
             .original-time {
-                font-size: 20px;
+                font-size: 22px;
+            }
+            
+            .route-badge {
+                width: 70px;
+                height: 70px;
+                font-size: 24px;
+            }
+            
+            .route-status {
+                font-size: 14px;
+                padding: 6px 12px;
             }
             
             .footer-info {
@@ -516,18 +569,20 @@
         }
         
         @media (max-width: 480px) {
-            .mode-btn {
-                padding: 15px 10px;
-                font-size: 18px;
+            .departure-item {
+                grid-template-columns: 70px 1fr 120px;
+                gap: 8px;
+                padding: 12px 15px;
             }
             
-            .route-badge {
-                width: 60px;
-                height: 60px;
-                font-size: 20px;
+            .table-headers {
+                grid-template-columns: 70px 1fr 120px;
+                gap: 8px;
+                padding: 10px 15px;
+                font-size: 14px;
             }
             
-            .route-destination {
+            .destination {
                 font-size: 18px;
             }
             
@@ -537,6 +592,21 @@
             
             .amended-time {
                 font-size: 24px;
+            }
+            
+            .original-time {
+                font-size: 18px;
+            }
+            
+            .route-badge {
+                width: 60px;
+                height: 60px;
+                font-size: 20px;
+            }
+            
+            .mode-btn {
+                padding: 15px 5px;
+                font-size: 16px;
             }
         }
     </style>
@@ -568,15 +638,17 @@
     <div class="main-content">
         <div id="stopBanner" class="stop-banner" style="display: none;">
             <h2 id="stopName">Nom de l'arrêt</h2>
-            <div class="stop-meta">
-                <span class="stop-id">ID: <span id="stopId">--</span></span>
-                <span>Départs à venir</span>
-            </div>
         </div>
         
         <div class="mode-toggle">
-            <button class="mode-btn active" data-mode="departures">DÉPARTS</button>
-            <button class="mode-btn" data-mode="arrivals">ARRIVÉES</button>
+            <button class="mode-btn departures active" data-mode="departures">DÉPARTS</button>
+            <button class="mode-btn arrivals" data-mode="arrivals">ARRIVÉES</button>
+        </div>
+        
+        <div id="tableHeaders" class="table-headers" style="display: none;">
+            <div class="col-ligne">LIGNE</div>
+            <div class="col-destination">DESTINATION</div>
+            <div class="col-heure">HEURE DE DÉPART</div>
         </div>
         
         <div id="departuresList" class="departures-list">
@@ -610,13 +682,15 @@
             initElements() {
                 this.stopBanner = document.getElementById('stopBanner');
                 this.stopName = document.getElementById('stopName');
-                this.stopIdEl = document.getElementById('stopId');
                 this.departuresList = document.getElementById('departuresList');
                 this.currentTime = document.getElementById('currentTime');
                 this.lastUpdateEl = document.getElementById('lastUpdate');
                 this.urlInfo = document.getElementById('urlInfo');
+                this.tableHeaders = document.getElementById('tableHeaders');
                 this.modeBtns = document.querySelectorAll('.mode-btn');
                 this.manualUpdateBtn = document.getElementById('manualUpdate');
+                this.colDestination = document.querySelector('.col-destination');
+                this.colHeure = document.querySelector('.col-heure');
             }
             
             loadFromURL() {
@@ -629,15 +703,30 @@
                 if (this.quantity < 1) this.quantity = 10;
                 
                 // Update active mode button
-                this.modeBtns.forEach(btn => {
-                    const isActive = btn.dataset.mode === this.mode;
-                    btn.classList.toggle('active', isActive);
-                });
+                this.updateModeButtons();
                 
                 if (this.stopId) {
                     this.fetchData();
                 } else {
                     this.showWelcomeMessage();
+                }
+            }
+            
+            updateModeButtons() {
+                this.modeBtns.forEach(btn => {
+                    const isActive = btn.dataset.mode === this.mode;
+                    btn.classList.toggle('active', isActive);
+                });
+                
+                // Update table headers based on mode
+                if (this.colDestination && this.colHeure) {
+                    if (this.mode === 'departures') {
+                        this.colDestination.textContent = 'DESTINATION';
+                        this.colHeure.textContent = 'HEURE DE DÉPART';
+                    } else {
+                        this.colDestination.textContent = 'PROVENANCE';
+                        this.colHeure.textContent = 'HEURE D\'ARRIVÉE';
+                    }
                 }
             }
             
@@ -668,15 +757,7 @@
                 window.history.pushState({}, '', url);
                 
                 // Update UI
-                this.modeBtns.forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.mode === mode);
-                });
-                
-                // Update stop banner text
-                if (this.stopBanner.style.display !== 'none') {
-                    const metaText = mode === 'departures' ? 'Départs à venir' : 'Arrivées à venir';
-                    document.querySelector('.stop-meta span:last-child').textContent = metaText;
-                }
+                this.updateModeButtons();
                 
                 // Fetch new data
                 this.fetchData();
@@ -723,7 +804,7 @@
                 if (this.stopInfo) {
                     this.stopBanner.style.display = 'block';
                     this.stopName.textContent = this.stopInfo.stop_name || 'Arrêt inconnu';
-                    this.stopIdEl.textContent = this.stopInfo.stop_id;
+                    this.tableHeaders.style.display = 'grid';
                     
                     // Update URL info
                     this.urlInfo.innerHTML = `
@@ -750,6 +831,9 @@
                     `;
                     return;
                 }
+                
+                // Add section class based on mode
+                const sectionClass = this.mode === 'departures' ? 'departures-section' : 'arrivals-section';
                 
                 let html = '';
                 
@@ -814,23 +898,18 @@
                             <div class="route-badge" style="background-color: ${routeColor}; color: ${routeTextColor}">
                                 ${dep.route_name || '?'}
                             </div>
-                            <div class="route-info">
-                                <div class="route-destination">
-                                    ${dep.trip_headsign || 'Direction non spécifiée'}
-                                    <span class="route-status status-${status}">${statusText}</span>
-                                </div>
-                                <div class="scheduled-time">
-                                    ${this.mode === 'departures' ? 'Départ prévu' : 'Arrivée prévue'}: ${timeStr}
-                                </div>
+                            <div class="destination-info">
+                                <div class="destination">${dep.trip_headsign || 'Direction non spécifiée'}</div>
+                                <span class="route-status status-${status}">${statusText}</span>
                             </div>
-                            <div class="time-info">
+                            <div class="time-section">
                                 ${timeDisplay}
                             </div>
                         </div>
                     `;
                 });
                 
-                this.departuresList.innerHTML = html;
+                this.departuresList.innerHTML = `<div class="${sectionClass}">${html}</div>`;
             }
             
             showLoading() {
@@ -841,6 +920,7 @@
                         <p>Recherche des ${this.mode === 'departures' ? 'départs' : 'arrivées'} pour l'arrêt ${this.stopId}</p>
                     </div>
                 `;
+                this.tableHeaders.style.display = 'none';
             }
             
             showError(message) {
@@ -855,9 +935,8 @@
                     </div>
                 `;
                 
-                if (this.stopBanner) {
-                    this.stopBanner.style.display = 'none';
-                }
+                this.stopBanner.style.display = 'none';
+                this.tableHeaders.style.display = 'none';
             }
             
             showWelcomeMessage() {
@@ -874,6 +953,7 @@
                 `;
                 
                 this.stopBanner.style.display = 'none';
+                this.tableHeaders.style.display = 'none';
                 this.urlInfo.innerHTML = `
                     <div>
                         <strong>Instructions:</strong> Ajoutez <code>?id=NUMERO_ARRET</code> à l'URL
