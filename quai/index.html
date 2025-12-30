@@ -407,6 +407,11 @@
     <button class="refresh-btn" id="refreshBtn" title="Refresh Data">⟳</button>
 
     <script>
+        // ！！！ 重要：请将下面的 API_BASE_URL 改为您自己的 API 地址 ！！！
+        const API_BASE_URL = 'https://redsncfamiens.dmytrothemir.workers.dev';
+        // 如果您的图片放在其他目录，请修改下面的 IMAGES_BASE_PATH
+        const IMAGES_BASE_PATH = './';
+        
         // Get trip ID from URL parameter
         const urlParams = new URLSearchParams(window.location.search);
         const urlTripId = urlParams.get('trip');
@@ -459,8 +464,11 @@
             hideTrainDisplay();
             
             try {
-                // Fetch crowd data from API
-                const apiUrl = "redsncfamiens.dmytrothemir.workers.dev/trips/${tripId}/realtime/crowd";
+                // Fetch crowd data from YOUR API
+                // Using the endpoint: /trips/{trip_id}/realtime/crowd
+                const apiUrl = `${API_BASE_URL}/trips/${tripId}/realtime/crowd`;
+                console.log('Fetching from:', apiUrl);
+                
                 const response = await fetch(apiUrl);
                 
                 if (!response.ok) {
@@ -478,6 +486,7 @@
                 
             } catch (error) {
                 showError(`Failed to load train data: ${error.message}`);
+                console.error('Error loading train data:', error);
             } finally {
                 hideLoading();
             }
@@ -581,12 +590,19 @@
                         imgName += '_red';
                     }
                     
-                    // Add .png extension
+                    // Add .png extension and full path
                     imgName += '.png';
-                    
-                    wagonImg.src = imgName;
+                    wagonImg.src = IMAGES_BASE_PATH + imgName;
                     wagonImg.alt = `Wagon ${i + 1} - ${getCrowdDescription(crowdLevel)}`;
                     wagonImg.title = `Wagon ${i + 1}: ${getCrowdDescription(crowdLevel)} (Level ${crowdLevel})`;
+                    
+                    // Add error handling for missing images
+                    wagonImg.onerror = function() {
+                        console.warn(`Image not found: ${imgName}`);
+                        this.style.border = '2px dashed #dc2626';
+                        this.style.padding = '5px';
+                        this.alt = `Missing image: ${imgName}`;
+                    };
                     
                     wagonsContainer.appendChild(wagonImg);
                 }
@@ -670,6 +686,11 @@
                 loadTrainData(tripId);
             }
         });
+        
+        // Initial check for API availability
+        console.log('Train Crowd Monitor initialized');
+        console.log('API Base URL:', API_BASE_URL);
+        console.log('Images Base Path:', IMAGES_BASE_PATH);
     </script>
 </body>
 </html>
