@@ -36,8 +36,8 @@
         }
         
         .sncf-icon {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             background: #ff6b00;
             border-radius: 8px;
             display: flex;
@@ -45,26 +45,26 @@
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 20px;
+            font-size: 24px;
         }
         
         .sncf-title h1 {
             color: white;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 600;
             margin-bottom: 2px;
         }
         
         .sncf-title h2 {
             color: #a8c6ff;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 400;
         }
         
         .header-info {
             text-align: right;
             color: white;
-            font-size: 14px;
+            font-size: 16px;
         }
         
         /* Main Content - Full Width */
@@ -151,14 +151,14 @@
         /* Table Headers */
         .table-headers {
             display: grid;
-            grid-template-columns: 120px 1fr 180px;
-            gap: 20px;
+            grid-template-columns: 150px 1fr 200px;
+            gap: 30px;
             padding: 20px 5%;
             background: #f8f9fa;
             border-bottom: 2px solid #dee2e6;
             font-weight: 600;
             color: #003366;
-            font-size: 18px;
+            font-size: 20px;
         }
         
         /* Departures List - Full Width */
@@ -170,13 +170,14 @@
         /* Column layout */
         .departure-item {
             display: grid;
-            grid-template-columns: 120px 1fr 180px;
-            gap: 20px;
+            grid-template-columns: 150px 1fr 200px;
+            gap: 30px;
             padding: 25px 5%;
             border-bottom: 1px solid rgba(0,0,0,0.1);
             align-items: center;
             transition: all 0.3s;
             position: relative;
+            min-height: 120px;
         }
         
         .departure-item:hover {
@@ -205,13 +206,13 @@
         
         /* Route Badge - Much larger */
         .route-badge {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
+            font-size: 48px;
             font-weight: 900;
             box-shadow: 0 8px 16px rgba(0,0,0,0.2);
             color: white;
@@ -219,67 +220,41 @@
             margin: 0 auto;
         }
         
-        /* Destination/Provenance - Much larger and centered */
+        /* Destination/Provenance - Much larger and properly centered */
         .destination-info {
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding-left: 20px;
-            min-height: 100px;
+            align-items: center;
+            justify-content: flex-start;
+            padding-left: 40px;
+            height: 100%;
         }
         
         .destination {
-            font-size: 32px;
+            font-size: 40px;
             font-weight: 700;
             color: #003366;
-            margin-bottom: 8px;
             line-height: 1.2;
+            text-align: left;
         }
         
         .arrivals-section .destination {
             color: #008542;
         }
         
-        .route-status {
-            font-size: 18px;
-            font-weight: 600;
-            padding: 8px 18px;
-            border-radius: 20px;
-            display: inline-block;
-            width: fit-content;
-        }
-        
-        .status-on_time {
-            background: #e7f5e9;
-            color: #2e7d32;
-        }
-        
-        .status-delayed {
-            background: #ffebee;
-            color: #c62828;
-        }
-        
-        .status-early {
-            background: #fff3e0;
-            color: #ef6c00;
-        }
-        
-        .status-canceled {
-            background: #f5f5f5;
-            color: #757575;
-        }
-        
         /* Time Section */
         .time-section {
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            justify-content: center;
-            min-height: 100px;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+        }
+        
+        .time-display {
+            text-align: right;
         }
         
         .real-time {
-            font-size: 40px;
+            font-size: 48px;
             font-weight: 900;
             display: flex;
             flex-direction: column;
@@ -290,13 +265,13 @@
         .original-time {
             text-decoration: line-through;
             color: #999;
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 600;
             margin-bottom: 4px;
         }
         
         .amended-time {
-            font-size: 40px;
+            font-size: 48px;
             font-weight: 900;
         }
         
@@ -313,55 +288,82 @@
         }
         
         .canceled-label {
-            font-size: 22px;
+            font-size: 28px;
             color: #c62828;
             font-weight: bold;
             text-transform: uppercase;
             margin-top: 8px;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             background: rgba(255,255,255,0.9);
-            padding: 5px 15px;
+            padding: 8px 20px;
             border-radius: 10px;
-            border: 2px solid #c62828;
+            border: 3px solid #c62828;
+        }
+        
+        /* Status indicators (color only, no text) */
+        .status-indicator {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .status-on_time {
+            background: #2e7d32;
+        }
+        
+        .status-delayed {
+            background: #c62828;
+        }
+        
+        .status-early {
+            background: #ef6c00;
+        }
+        
+        .status-canceled {
+            background: #757575;
         }
         
         /* Empty State */
         .empty-state {
-            padding: 80px 5%;
+            padding: 100px 5%;
             text-align: center;
             color: #666;
             background: white;
         }
         
         .empty-icon {
-            font-size: 64px;
+            font-size: 72px;
             margin-bottom: 30px;
             opacity: 0.5;
         }
         
         .empty-state h3 {
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 15px;
             color: #003366;
         }
         
         .empty-state p {
-            font-size: 18px;
+            font-size: 20px;
             line-height: 1.6;
         }
         
         /* Loading State */
         .loading {
-            padding: 80px 5%;
+            padding: 100px 5%;
             text-align: center;
             background: white;
         }
         
         .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 5px solid #eef2f7;
-            border-top: 5px solid #ff6b00;
+            width: 70px;
+            height: 70px;
+            border: 6px solid #eef2f7;
+            border-top: 6px solid #ff6b00;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 30px;
@@ -380,7 +382,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 16px;
+            font-size: 18px;
             color: #666;
             width: 100%;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
@@ -396,10 +398,10 @@
             background: #ff6b00;
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 15px 30px;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 18px;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -412,14 +414,14 @@
         
         /* Error State */
         .error-state {
-            padding: 80px 5%;
+            padding: 100px 5%;
             text-align: center;
             color: #c62828;
             background: white;
         }
         
         .error-icon {
-            font-size: 64px;
+            font-size: 72px;
             margin-bottom: 30px;
         }
         
@@ -428,7 +430,7 @@
             background: #e3f2fd;
             padding: 15px 5%;
             border-bottom: 1px solid #bbdefb;
-            font-size: 14px;
+            font-size: 16px;
             color: #1565c0;
             display: flex;
             justify-content: space-between;
@@ -447,7 +449,85 @@
         }
         
         /* Responsive */
+        @media (max-width: 1400px) {
+            .table-headers {
+                grid-template-columns: 140px 1fr 180px;
+            }
+            
+            .departure-item {
+                grid-template-columns: 140px 1fr 180px;
+            }
+            
+            .route-badge {
+                width: 110px;
+                height: 110px;
+                font-size: 44px;
+            }
+            
+            .destination {
+                font-size: 36px;
+            }
+            
+            .real-time {
+                font-size: 44px;
+            }
+            
+            .amended-time {
+                font-size: 44px;
+            }
+        }
+        
         @media (max-width: 1200px) {
+            .table-headers {
+                grid-template-columns: 130px 1fr 170px;
+                gap: 20px;
+            }
+            
+            .departure-item {
+                grid-template-columns: 130px 1fr 170px;
+                gap: 20px;
+                padding: 20px 5%;
+                min-height: 110px;
+            }
+            
+            .destination {
+                font-size: 32px;
+            }
+            
+            .real-time {
+                font-size: 40px;
+            }
+            
+            .amended-time {
+                font-size: 40px;
+            }
+            
+            .original-time {
+                font-size: 28px;
+            }
+            
+            .route-badge {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .table-headers {
+                grid-template-columns: 110px 1fr 150px;
+                gap: 15px;
+                padding: 15px 5%;
+                font-size: 18px;
+            }
+            
+            .departure-item {
+                grid-template-columns: 110px 1fr 150px;
+                gap: 15px;
+                padding: 18px 5%;
+                min-height: 100px;
+            }
+            
             .destination {
                 font-size: 28px;
             }
@@ -458,44 +538,20 @@
             
             .amended-time {
                 font-size: 36px;
+            }
+            
+            .original-time {
+                font-size: 24px;
             }
             
             .route-badge {
                 width: 90px;
                 height: 90px;
-                font-size: 32px;
-            }
-        }
-        
-        @media (max-width: 992px) {
-            .departure-item {
-                grid-template-columns: 100px 1fr 160px;
-                gap: 15px;
-                padding: 20px 5%;
+                font-size: 36px;
             }
             
-            .table-headers {
-                grid-template-columns: 100px 1fr 160px;
-                gap: 15px;
-                padding: 15px 5%;
-            }
-            
-            .destination {
-                font-size: 26px;
-            }
-            
-            .real-time {
-                font-size: 32px;
-            }
-            
-            .amended-time {
-                font-size: 32px;
-            }
-            
-            .route-badge {
-                width: 80px;
-                height: 80px;
-                font-size: 28px;
+            .destination-info {
+                padding-left: 20px;
             }
         }
         
@@ -520,17 +576,18 @@
                 font-size: 18px;
             }
             
-            .departure-item {
-                grid-template-columns: 80px 1fr 140px;
-                gap: 10px;
-                padding: 15px 20px;
-            }
-            
             .table-headers {
-                grid-template-columns: 80px 1fr 140px;
+                grid-template-columns: 90px 1fr 120px;
                 gap: 10px;
                 padding: 12px 20px;
                 font-size: 16px;
+            }
+            
+            .departure-item {
+                grid-template-columns: 90px 1fr 120px;
+                gap: 10px;
+                padding: 15px 20px;
+                min-height: 90px;
             }
             
             .destination {
@@ -546,18 +603,18 @@
             }
             
             .original-time {
-                font-size: 22px;
+                font-size: 20px;
             }
             
             .route-badge {
-                width: 70px;
-                height: 70px;
-                font-size: 24px;
+                width: 80px;
+                height: 80px;
+                font-size: 32px;
             }
             
-            .route-status {
-                font-size: 14px;
-                padding: 6px 12px;
+            .canceled-label {
+                font-size: 20px;
+                padding: 6px 15px;
             }
             
             .footer-info {
@@ -568,18 +625,19 @@
             }
         }
         
-        @media (max-width: 480px) {
-            .departure-item {
-                grid-template-columns: 70px 1fr 120px;
-                gap: 8px;
-                padding: 12px 15px;
-            }
-            
+        @media (max-width: 576px) {
             .table-headers {
-                grid-template-columns: 70px 1fr 120px;
+                grid-template-columns: 70px 1fr 100px;
                 gap: 8px;
                 padding: 10px 15px;
                 font-size: 14px;
+            }
+            
+            .departure-item {
+                grid-template-columns: 70px 1fr 100px;
+                gap: 8px;
+                padding: 12px 15px;
+                min-height: 80px;
             }
             
             .destination {
@@ -601,12 +659,16 @@
             .route-badge {
                 width: 60px;
                 height: 60px;
-                font-size: 20px;
+                font-size: 24px;
             }
             
             .mode-btn {
                 padding: 15px 5px;
                 font-size: 16px;
+            }
+            
+            .destination-info {
+                padding-left: 10px;
             }
         }
     </style>
@@ -862,15 +924,7 @@
                         routeTextColor = '#' + routeTextColor;
                     }
                     
-                    // Status text
-                    const statusText = {
-                        'on_time': 'À l\'heure',
-                        'delayed': 'Retardé',
-                        'early': 'En avance',
-                        'canceled': 'Annulé'
-                    }[status] || status;
-                    
-                    // Time display
+                    // Time display - simplified, no status text
                     let timeDisplay;
                     if (isCanceled) {
                         timeDisplay = `
@@ -900,11 +954,11 @@
                             </div>
                             <div class="destination-info">
                                 <div class="destination">${dep.trip_headsign || 'Direction non spécifiée'}</div>
-                                <span class="route-status status-${status}">${statusText}</span>
                             </div>
                             <div class="time-section">
                                 ${timeDisplay}
                             </div>
+                            <div class="status-indicator status-${status}"></div>
                         </div>
                     `;
                 });
