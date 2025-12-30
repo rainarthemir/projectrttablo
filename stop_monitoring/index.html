@@ -1,1082 +1,736 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNCF Amiens - Temps Réel</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-            color: #333;
-        }
-        
-        /* SNCF Header - Full Width */
-        .sncf-header {
-            background: #003366;
-            padding: 15px 5%;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-        }
-        
-        .sncf-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .sncf-icon {
-            width: 50px;
-            height: 50px;
-            background: #ff6b00;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 24px;
-        }
-        
-        .sncf-title h1 {
-            color: white;
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-        
-        .sncf-title h2 {
-            color: #a8c6ff;
-            font-size: 16px;
-            font-weight: 400;
-        }
-        
-        .header-info {
-            text-align: right;
-            color: white;
-            font-size: 16px;
-        }
-        
-        /* Main Content - Full Width */
-        .main-content {
-            width: 100%;
-        }
-        
-        /* Stop Banner - Full Width */
-        .stop-banner {
-            background: linear-gradient(135deg, #003366 0%, #00509e 100%);
-            color: white;
-            padding: 30px 5%;
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .stop-banner h2 {
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        /* Mode Toggle - Full Width */
-        .mode-toggle {
-            display: flex;
-            width: 100%;
-            background: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        .mode-btn {
-            flex: 1;
-            padding: 20px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: 700;
-            color: #666;
-            background: white;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            letter-spacing: 1px;
-        }
-        
-        .mode-btn:hover {
-            background: #f8f9fa;
-        }
-        
-        .mode-btn.active {
-            color: white;
-        }
-        
-        .mode-btn.departures.active {
-            background: #003366;
-        }
-        
-        .mode-btn.arrivals.active {
-            background: #008542;
-        }
-        
-        .mode-btn.active::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-        }
-        
-        .mode-btn.departures.active::after {
-            background: #ff6b00;
-        }
-        
-        .mode-btn.arrivals.active::after {
-            background: #00cc66;
-        }
-        
-        /* Table Headers */
-        .table-headers {
-            display: grid;
-            grid-template-columns: 100px 1fr 140px;
-            gap: 20px;
-            padding: 15px 5%;
-            background: #f8f9fa;
-            border-bottom: 2px solid #dee2e6;
-            font-weight: 600;
-            color: #003366;
-            font-size: 18px;
-        }
-        
-        /* Departures List - Full Width */
-        .departures-list {
-            width: 100%;
-            padding: 0;
-        }
-        
-        /* Column layout */
-        .departure-item {
-            display: grid;
-            grid-template-columns: 100px 1fr 140px;
-            gap: 20px;
-            padding: 18px 5%;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-            align-items: center;
-            transition: all 0.3s;
-            position: relative;
-            min-height: 90px;
-        }
-        
-        .departure-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            z-index: 1;
-        }
-        
-        /* Departures background */
-        .departures-section .departure-item {
-            background: #e6f0ff;
-        }
-        
-        .departures-section .departure-item:nth-child(odd) {
-            background: #d1e3ff;
-        }
-        
-        /* Arrivals background */
-        .arrivals-section .departure-item {
-            background: #e6fff2;
-        }
-        
-        .arrivals-section .departure-item:nth-child(odd) {
-            background: #d1ffeb;
-        }
-        
-        /* Route Badge - Medium size */
-        .route-badge {
-            width: 80px;
-            height: 80px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: 900;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            color: white;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            margin: 0 auto;
-        }
-        
-        /* Destination/Provenance - Centered properly */
-        .destination-info {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            padding-left: 30px;
-            height: 100%;
-        }
-        
-        .destination {
-            font-size: 36px;
-            font-weight: 700;
-            color: #003366;
-            line-height: 1.2;
-            text-align: left;
-        }
-        
-        .arrivals-section .destination {
-            color: #008542;
-        }
-        
-        /* Time Section */
-        .time-section {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            height: 100%;
-        }
-        
-        .time-display {
-            text-align: right;
-        }
-        
-        .real-time {
-            font-size: 28px;
-            font-weight: 700;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            line-height: 1.2;
-        }
-        
-        .original-time {
-            text-decoration: line-through;
-            color: #999;
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-        
-        .amended-time {
-            font-size: 28px;
-            font-weight: 700;
-        }
-        
-        .time-on_time {
-            color: #2e7d32;
-        }
-        
-        .time-delayed {
-            color: #c62828;
-        }
-        
-        .time-early {
-            color: #ef6c00;
-        }
-        
-        .canceled-label {
-            font-size: 20px;
-            color: #c62828;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 6px;
-            letter-spacing: 1px;
-            background: rgba(255,255,255,0.9);
-            padding: 6px 15px;
-            border-radius: 8px;
-            border: 2px solid #c62828;
-        }
-        
-        /* Status indicators (color only, no text) */
-        .status-indicator {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-        
-        .status-on_time {
-            background: #2e7d32;
-        }
-        
-        .status-delayed {
-            background: #c62828;
-        }
-        
-        .status-early {
-            background: #ef6c00;
-        }
-        
-        .status-canceled {
-            background: #757575;
-        }
-        
-        /* Empty State */
-        .empty-state {
-            padding: 80px 5%;
-            text-align: center;
-            color: #666;
-            background: white;
-        }
-        
-        .empty-icon {
-            font-size: 60px;
-            margin-bottom: 25px;
-            opacity: 0.5;
-        }
-        
-        .empty-state h3 {
-            font-size: 28px;
-            margin-bottom: 15px;
-            color: #003366;
-        }
-        
-        .empty-state p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
-        
-        /* Loading State */
-        .loading {
-            padding: 80px 5%;
-            text-align: center;
-            background: white;
-        }
-        
-        .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 5px solid #eef2f7;
-            border-top: 5px solid #ff6b00;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 25px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Footer Info - Full Width */
-        .footer-info {
-            padding: 20px 5%;
-            background: white;
-            border-top: 1px solid #e1e5eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 16px;
-            color: #666;
-            width: 100%;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .update-time {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .update-btn {
-            background: #ff6b00;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .update-btn:hover {
-            background: #e55a00;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        /* Error State */
-        .error-state {
-            padding: 80px 5%;
-            text-align: center;
-            color: #c62828;
-            background: white;
-        }
-        
-        .error-icon {
-            font-size: 60px;
-            margin-bottom: 25px;
-        }
-        
-        /* URL Info */
-        .url-info {
-            background: #e3f2fd;
-            padding: 15px 5%;
-            border-bottom: 1px solid #bbdefb;
-            font-size: 16px;
-            color: #1565c0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-        
-        .url-info a {
-            color: #1565c0;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .url-info a:hover {
-            text-decoration: underline;
-        }
-        
-        /* Responsive */
-        @media (max-width: 1400px) {
-            .stop-banner h2 {
-                font-size: 44px;
-            }
-            
-            .destination {
-                font-size: 34px;
-            }
-        }
-        
-        @media (max-width: 1200px) {
-            .table-headers {
-                grid-template-columns: 90px 1fr 130px;
-                gap: 18px;
-            }
-            
-            .departure-item {
-                grid-template-columns: 90px 1fr 130px;
-                gap: 18px;
-                padding: 16px 5%;
-                min-height: 85px;
-            }
-            
-            .destination {
-                font-size: 32px;
-            }
-            
-            .real-time {
-                font-size: 26px;
-            }
-            
-            .amended-time {
-                font-size: 26px;
-            }
-            
-            .original-time {
-                font-size: 18px;
-            }
-            
-            .route-badge {
-                width: 75px;
-                height: 75px;
-                font-size: 30px;
-            }
-        }
-        
-        @media (max-width: 992px) {
-            .stop-banner h2 {
-                font-size: 40px;
-            }
-            
-            .table-headers {
-                grid-template-columns: 80px 1fr 120px;
-                gap: 15px;
-                padding: 14px 5%;
-                font-size: 16px;
-            }
-            
-            .departure-item {
-                grid-template-columns: 80px 1fr 120px;
-                gap: 15px;
-                padding: 15px 5%;
-                min-height: 80px;
-            }
-            
-            .destination {
-                font-size: 28px;
-                padding-left: 20px;
-            }
-            
-            .real-time {
-                font-size: 24px;
-            }
-            
-            .amended-time {
-                font-size: 24px;
-            }
-            
-            .original-time {
-                font-size: 16px;
-            }
-            
-            .route-badge {
-                width: 70px;
-                height: 70px;
-                font-size: 28px;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .sncf-header {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-                padding: 15px 20px;
-            }
-            
-            .header-info {
-                text-align: center;
-            }
-            
-            .stop-banner h2 {
-                font-size: 36px;
-                padding: 25px 20px;
-            }
-            
-            .mode-btn {
-                padding: 18px 10px;
-                font-size: 18px;
-            }
-            
-            .table-headers {
-                grid-template-columns: 70px 1fr 100px;
-                gap: 12px;
-                padding: 12px 20px;
-                font-size: 15px;
-            }
-            
-            .departure-item {
-                grid-template-columns: 70px 1fr 100px;
-                gap: 12px;
-                padding: 14px 20px;
-                min-height: 75px;
-            }
-            
-            .destination {
-                font-size: 24px;
-                padding-left: 15px;
-            }
-            
-            .real-time {
-                font-size: 22px;
-            }
-            
-            .amended-time {
-                font-size: 22px;
-            }
-            
-            .original-time {
-                font-size: 16px;
-            }
-            
-            .route-badge {
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
-            }
-            
-            .canceled-label {
-                font-size: 18px;
-                padding: 5px 12px;
-            }
-            
-            .footer-info {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-                padding: 18px 20px;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .stop-banner h2 {
-                font-size: 32px;
-                padding: 20px 15px;
-            }
-            
-            .table-headers {
-                grid-template-columns: 60px 1fr 90px;
-                gap: 10px;
-                padding: 10px 15px;
-                font-size: 14px;
-            }
-            
-            .departure-item {
-                grid-template-columns: 60px 1fr 90px;
-                gap: 10px;
-                padding: 12px 15px;
-                min-height: 70px;
-            }
-            
-            .destination {
-                font-size: 22px;
-                padding-left: 12px;
-            }
-            
-            .real-time {
-                font-size: 20px;
-            }
-            
-            .amended-time {
-                font-size: 20px;
-            }
-            
-            .original-time {
-                font-size: 14px;
-            }
-            
-            .route-badge {
-                width: 55px;
-                height: 55px;
-                font-size: 22px;
-            }
-            
-            .mode-btn {
-                padding: 15px 5px;
-                font-size: 16px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .stop-banner h2 {
-                font-size: 28px;
-            }
-            
-            .destination {
-                font-size: 20px;
-                padding-left: 10px;
-            }
-            
-            .real-time {
-                font-size: 18px;
-            }
-            
-            .amended-time {
-                font-size: 18px;
-            }
-            
-            .original-time {
-                font-size: 14px;
-            }
-            
-            .route-badge {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="sncf-header">
-        <div class="sncf-logo">
-            <div class="sncf-icon">TGV</div>
-            <div class="sncf-title">
-                <h1>SNCF Amiens</h1>
-                <h2>Information voyageurs en temps réel</h2>
-            </div>
-        </div>
-        <div class="header-info">
-            <div id="currentTime">--:--:--</div>
-            <div>Actualisation automatique</div>
-        </div>
-    </div>
+const GTFS_BASE = "https://rainarthemir.github.io/projectrttablo/gtfs/";
+const FILES = [
+  "stops.txt",
+  "routes.txt",
+  "trips.txt",
+  "stop_times.txt",
+  "calendar.txt"
+];
+
+// ---------------- CSV PARSER ----------------
+function parseCsv(text, keyField) {
+  const lines = text.replace(/\r/g, "").split("\n").filter(l => l.trim().length > 0);
+  if (!lines.length) return keyField ? {} : [];
+  const headers = lines.shift().split(",");
+  const result = keyField ? {} : [];
+  for (const line of lines) {
+    const values = line.split(",");
+    const obj = {};
+    for (let i = 0; i < headers.length; i++) obj[headers[i]] = values[i] ?? "";
+    if (keyField) { if (obj[keyField]) result[obj[keyField]] = obj; } else { result.push(obj); }
+  }
+  return result;
+}
+
+// ---------------- LOAD + PARSE GTFS ----------------
+async function loadAndParseGtfs() {
+  const raw = {};
+  for (const file of FILES) {
+    const res = await fetch(GTFS_BASE + file, { cf: { cacheTtl: 0 } });
+    if (!res.ok) throw new Error(`Failed to load ${file} (${res.status})`);
+    raw[file] = await res.text();
+  }
+
+  return {
+    loadedAt: Date.now(),
+    source: "github",
+    stops: parseCsv(raw["stops.txt"], "stop_id"),
+    routes: parseCsv(raw["routes.txt"], "route_id"),
+    trips: parseCsv(raw["trips.txt"], "trip_id"),
+    stopTimes: parseCsv(raw["stop_times.txt"], null),
+    calendar: parseCsv(raw["calendar.txt"], "service_id")
+  };
+}
+
+// ---------------- HELPERS ----------------
+function timeToMinutes(hhmmss) {
+  const [h, m] = hhmmss.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function addMinutes(timeStr, minutes) {
+  let [h, m, s] = timeStr.split(":").map(Number);
+  let total = h * 60 + m + minutes;
+  if (total < 0) total = 0;
+  h = Math.floor(total / 60) % 24;
+  m = total % 60;
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2,"0")}`;
+}
+
+function getParisMinutes() {
+  const nowUTC = new Date();
+  const parisNow = new Date(nowUTC.toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+  return parisNow.getHours() * 60 + parisNow.getMinutes();
+}
+
+// ---------------- DATE FORMAT HELPERS ----------------
+function convertDateToYYYYMMDD(dateStr) {
+  // Если дата в формате DDMMYYYY (8 цифр)
+  if (dateStr.length === 8 && /^\d{8}$/.test(dateStr)) {
+    const day = dateStr.substring(0, 2);
+    const month = dateStr.substring(2, 4);
+    const year = dateStr.substring(4);
+    // Проверяем, является ли это валидной датой DDMMYYYY
+    if (parseInt(day) >= 1 && parseInt(day) <= 31 && 
+        parseInt(month) >= 1 && parseInt(month) <= 12) {
+      return year + month + day; // Конвертируем в YYYYMMDD
+    }
+  }
+  // Если дата в формате YYYYMMDD (уже правильный формат)
+  if (dateStr.length === 8 && /^\d{8}$/.test(dateStr)) {
+    return dateStr;
+  }
+  return dateStr;
+}
+
+function getTodayDate() {
+  const nowUTC = new Date();
+  const parisNow = new Date(nowUTC.toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+  const year = parisNow.getFullYear();
+  const month = String(parisNow.getMonth() + 1).padStart(2, '0');
+  const day = String(parisNow.getDate()).padStart(2, '0');
+  return year + month + day; // YYYYMMDD
+}
+
+async function getRtData(kv, date) {
+  const formattedDate = convertDateToYYYYMMDD(date);
+  const data = await kv.get(`rt_data_${formattedDate}`, { type: "json" });
+  return data || {};
+}
+
+async function setRtData(kv, date, newData) {
+  const formattedDate = convertDateToYYYYMMDD(date);
+  await kv.put(`rt_data_${formattedDate}`, JSON.stringify(newData));
+}
+
+// ---------------- APPLY RT CHANGES ----------------
+function applyRtChanges(tripId, allStopTimes, rtDataTrip) {
+  // Получаем все остановки этого рейса
+  const tripStopTimes = allStopTimes.filter(st => st.trip_id === tripId);
+  if (!tripStopTimes.length) return tripStopTimes;
+  
+  // Сортируем остановки по stop_sequence
+  const sortedStops = [...tripStopTimes].sort((a, b) => {
+    return parseInt(a.stop_sequence) - parseInt(b.stop_sequence);
+  });
+  
+  // Определяем последнюю остановку
+  const lastStop = sortedStops[sortedStops.length - 1];
+  const lastStopId = lastStop ? lastStop.stop_id : null;
+  
+  // Если весь рейс отменен
+  if (rtDataTrip?.canceled === true) {
+    return sortedStops.map(st => ({
+      ...st, 
+      amended_departure: st.departure_time, 
+      amended_arrival: st.arrival_time, 
+      amended: true, 
+      status: "canceled",
+      is_last: st.stop_id === lastStopId
+    }));
+  }
+  
+  let stops = [];
+  let cumulativeDelay = 0; // Накопительная задержка
+  let propagateActive = false;
+  
+  for (const st of sortedStops) {
+    const changes = rtDataTrip?.stop_times?.[st.stop_id] || null;
+    let amendedDeparture = st.departure_time;
+    let amendedArrival = st.arrival_time;
+    let status = "on_time";
+    let amended = false;
+
+    // Обрабатываем изменения
+    if (changes) {
+      amended = true;
+      
+      if (changes.action === "delay") {
+        const delta = Number(changes.minutes || 0);
+        cumulativeDelay += delta; // Добавляем задержку к накопительной
+        amendedDeparture = addMinutes(st.departure_time, cumulativeDelay);
+        amendedArrival = addMinutes(st.arrival_time, cumulativeDelay);
+        status = "delayed";
+        
+        // Если propagate = true, включаем распространение
+        if (changes.propagate === true) {
+          propagateActive = true;
+        } else {
+          propagateActive = false;
+          cumulativeDelay = 0; // Сбрасываем для следующей остановки если без распространения
+        }
+      } else if (changes.action === "earlify") {
+        const delta = Number(changes.minutes || 0);
+        cumulativeDelay -= delta; // Вычитаем из накопительной задержки (отрицательное значение)
+        amendedDeparture = addMinutes(st.departure_time, cumulativeDelay);
+        amendedArrival = addMinutes(st.arrival_time, cumulativeDelay);
+        status = "early";
+        
+        // Если propagate = true, включаем распространение
+        if (changes.propagate === true) {
+          propagateActive = true;
+        } else {
+          propagateActive = false;
+          cumulativeDelay = 0; // Сбрасываем для следующей остановки если без распространения
+        }
+      } else if (changes.action === "cancel") {
+        // При отмене оставляем время без изменений, но ставим статус canceled
+        amendedDeparture = st.departure_time;
+        amendedArrival = st.arrival_time;
+        status = "canceled";
+        propagateActive = false; // Отмена не распространяется
+        cumulativeDelay = 0; // Сбрасываем накопительную задержку
+      }
+    } else if (propagateActive && cumulativeDelay !== 0) {
+      // Применяем накопительную задержку к этой остановке (распространение)
+      amended = true;
+      amendedDeparture = addMinutes(st.departure_time, cumulativeDelay);
+      amendedArrival = addMinutes(st.arrival_time, cumulativeDelay);
+      status = cumulativeDelay > 0 ? "delayed" : "early";
+    }
+
+    stops.push({ 
+      ...st, 
+      amended_departure: amendedDeparture, 
+      amended_arrival: amendedArrival, 
+      amended, 
+      status,
+      is_last: st.stop_id === lastStopId
+    });
+  }
+
+  // Вставляем stop_exception после указанных стопов
+  if (rtDataTrip?.stop_exceptions?.length) {
+    // Сортируем исключения по after_stop_sequence
+    const sortedExceptions = [...rtDataTrip.stop_exceptions].sort((a, b) => {
+      return parseInt(a.after_stop_sequence || "0") - parseInt(b.after_stop_sequence || "0");
+    });
     
-    <div class="url-info" id="urlInfo">
-        <div>
-            <strong>Utilisation:</strong> Ajoutez <code>?id=STOP_ID</code> dans l'URL. Ex: <a href="?id=1">?id=1</a>
-        </div>
-        <div>
-            <strong>Quantité:</strong> Ajoutez <code>&q=10</code> pour modifier le nombre d'affichage (max 50)
-        </div>
-    </div>
-    
-    <div class="main-content">
-        <div id="stopBanner" class="stop-banner" style="display: none;">
-            <h2 id="stopName">Nom de l'arrêt</h2>
-        </div>
-        
-        <div class="mode-toggle">
-            <button class="mode-btn departures active" data-mode="departures">DÉPARTS</button>
-            <button class="mode-btn arrivals" data-mode="arrivals">ARRIVÉES</button>
-        </div>
-        
-        <div id="tableHeaders" class="table-headers" style="display: none;">
-            <div class="col-ligne">LIGNE</div>
-            <div class="col-destination">DESTINATION</div>
-            <div class="col-heure">HEURE DE DÉPART</div>
-        </div>
-        
-        <div id="departuresList" class="departures-list">
-            <!-- Les départs seront injectés ici -->
-        </div>
-        
-        <div class="footer-info">
-            <div class="update-time">
-                <span>Dernière mise à jour: <span id="lastUpdate">--:--:--</span></span>
-            </div>
-            <button class="update-btn" id="manualUpdate">Actualiser maintenant</button>
-        </div>
-    </div>
-    
-    <script>
-        class SNCFDepartures {
-            constructor() {
-                this.stopId = null;
-                this.mode = 'departures';
-                this.quantity = 10;
-                this.stopInfo = null;
-                this.departures = [];
-                this.lastUpdate = null;
-                
-                this.initElements();
-                this.loadFromURL();
-                this.bindEvents();
-                this.startAutoRefresh();
-            }
-            
-            initElements() {
-                this.stopBanner = document.getElementById('stopBanner');
-                this.stopName = document.getElementById('stopName');
-                this.departuresList = document.getElementById('departuresList');
-                this.currentTime = document.getElementById('currentTime');
-                this.lastUpdateEl = document.getElementById('lastUpdate');
-                this.urlInfo = document.getElementById('urlInfo');
-                this.tableHeaders = document.getElementById('tableHeaders');
-                this.modeBtns = document.querySelectorAll('.mode-btn');
-                this.manualUpdateBtn = document.getElementById('manualUpdate');
-                this.colDestination = document.querySelector('.col-destination');
-                this.colHeure = document.querySelector('.col-heure');
-            }
-            
-            loadFromURL() {
-                const urlParams = new URLSearchParams(window.location.search);
-                this.stopId = urlParams.get('id');
-                this.mode = urlParams.get('mode') || 'departures';
-                this.quantity = parseInt(urlParams.get('q')) || 10;
-                
-                if (this.quantity > 50) this.quantity = 50;
-                if (this.quantity < 1) this.quantity = 10;
-                
-                // Update active mode button
-                this.updateModeButtons();
-                
-                if (this.stopId) {
-                    this.fetchData();
-                } else {
-                    this.showWelcomeMessage();
-                }
-            }
-            
-            updateModeButtons() {
-                this.modeBtns.forEach(btn => {
-                    const isActive = btn.dataset.mode === this.mode;
-                    btn.classList.toggle('active', isActive);
-                });
-                
-                // Update table headers based on mode
-                if (this.colDestination && this.colHeure) {
-                    if (this.mode === 'departures') {
-                        this.colDestination.textContent = 'DESTINATION';
-                        this.colHeure.textContent = 'HEURE DE DÉPART';
-                    } else {
-                        this.colDestination.textContent = 'PROVENANCE';
-                        this.colHeure.textContent = 'HEURE D\'ARRIVÉE';
-                    }
-                }
-            }
-            
-            bindEvents() {
-                // Mode toggle
-                this.modeBtns.forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const mode = e.target.dataset.mode;
-                        this.setMode(mode);
-                    });
-                });
-                
-                // Manual update
-                this.manualUpdateBtn.addEventListener('click', () => {
-                    this.fetchData();
-                });
-                
-                // Update time every second
-                setInterval(() => this.updateCurrentTime(), 1000);
-            }
-            
-            setMode(mode) {
-                this.mode = mode;
-                
-                // Update URL
-                const url = new URL(window.location);
-                url.searchParams.set('mode', mode);
-                window.history.pushState({}, '', url);
-                
-                // Update UI
-                this.updateModeButtons();
-                
-                // Fetch new data
-                this.fetchData();
-            }
-            
-            async fetchData() {
-                if (!this.stopId) return;
-                
-                this.showLoading();
-                
-                try {
-                    const response = await fetch(
-                        `https://redsncfamiens.dmytrothemir.workers.dev/stop_monitoring/${this.stopId}/${this.mode}?q=${this.quantity}`
-                    );
-                    
-                    if (!response.ok) {
-                        throw new Error(`Erreur HTTP: ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                    
-                    if (data.status === 'error') {
-                        throw new Error(data.message);
-                    }
-                    
-                    this.stopInfo = data.stop;
-                    this.departures = data.departures || [];
-                    this.lastUpdate = new Date();
-                    
-                    this.render();
-                    
-                } catch (error) {
-                    this.showError(error.message);
-                }
-            }
-            
-            render() {
-                this.renderStopInfo();
-                this.renderDepartures();
-                this.updateLastUpdateTime();
-            }
-            
-            renderStopInfo() {
-                if (this.stopInfo) {
-                    this.stopBanner.style.display = 'block';
-                    this.stopName.textContent = this.stopInfo.stop_name || 'Arrêt inconnu';
-                    this.tableHeaders.style.display = 'grid';
-                    
-                    // Update URL info
-                    this.urlInfo.innerHTML = `
-                        <div>
-                            <strong>Arrêt:</strong> ${this.stopInfo.stop_name}
-                        </div>
-                        <div>
-                            <a href="?id=${this.stopId}&mode=${this.mode === 'departures' ? 'arrivals' : 'departures'}&q=${this.quantity}">
-                                Voir les ${this.mode === 'departures' ? 'arrivées' : 'départs'}
-                            </a>
-                        </div>
-                    `;
-                }
-            }
-            
-            renderDepartures() {
-                if (this.departures.length === 0) {
-                    this.departuresList.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">🚇</div>
-                            <h3>Aucun service trouvé</h3>
-                            <p>Aucun ${this.mode === 'departures' ? 'départ' : 'arrivée'} prévu pour cet arrêt dans les prochaines heures.</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Add section class based on mode
-                const sectionClass = this.mode === 'departures' ? 'departures-section' : 'arrivals-section';
-                
-                let html = '';
-                
-                this.departures.forEach(dep => {
-                    const status = dep.status || 'on_time';
-                    const isCanceled = status === 'canceled';
-                    const isDelayed = status === 'delayed';
-                    const isEarly = status === 'early';
-                    const isOnTime = status === 'on_time';
-                    
-                    const originalTime = this.mode === 'arrivals' ? dep.arrival_time : dep.departure_time;
-                    const amendedTime = this.mode === 'arrivals' ? dep.amended_arrival : dep.amended_departure;
-                    
-                    const timeStr = originalTime ? originalTime.substring(0, 5) : '--:--';
-                    const amendedTimeStr = amendedTime ? amendedTime.substring(0, 5) : '--:--';
-                    
-                    // Determine colors with # prefix
-                    let routeColor = dep.route_color || '003366';
-                    let routeTextColor = dep.route_text_color || 'ffffff';
-                    
-                    // Add # if missing
-                    if (routeColor && !routeColor.startsWith('#')) {
-                        routeColor = '#' + routeColor;
-                    }
-                    if (routeTextColor && !routeTextColor.startsWith('#')) {
-                        routeTextColor = '#' + routeTextColor;
-                    }
-                    
-                    // Time display - simplified, no status text
-                    let timeDisplay;
-                    if (isCanceled) {
-                        timeDisplay = `
-                            <div class="real-time">
-                                <span class="original-time">${timeStr}</span>
-                                <span class="canceled-label">ANNULÉ</span>
-                            </div>
-                        `;
-                    } else if (isDelayed || isEarly) {
-                        const timeClass = isDelayed ? 'time-delayed' : 'time-early';
-                        timeDisplay = `
-                            <div class="real-time">
-                                <span class="original-time">${timeStr}</span>
-                                <span class="amended-time ${timeClass}">${amendedTimeStr}</span>
-                            </div>
-                        `;
-                    } else {
-                        timeDisplay = `
-                            <div class="real-time time-on_time">${timeStr}</div>
-                        `;
-                    }
-                    
-                    html += `
-                        <div class="departure-item">
-                            <div class="route-badge" style="background-color: ${routeColor}; color: ${routeTextColor}">
-                                ${dep.route_name || '?'}
-                            </div>
-                            <div class="destination-info">
-                                <div class="destination">${dep.trip_headsign || 'Direction non spécifiée'}</div>
-                            </div>
-                            <div class="time-section">
-                                ${timeDisplay}
-                            </div>
-                            <div class="status-indicator status-${status}"></div>
-                        </div>
-                    `;
-                });
-                
-                this.departuresList.innerHTML = `<div class="${sectionClass}">${html}</div>`;
-            }
-            
-            showLoading() {
-                this.departuresList.innerHTML = `
-                    <div class="loading">
-                        <div class="loading-spinner"></div>
-                        <h3>Chargement des données...</h3>
-                        <p>Recherche des ${this.mode === 'departures' ? 'départs' : 'arrivées'} pour l'arrêt ${this.stopId}</p>
-                    </div>
-                `;
-                this.tableHeaders.style.display = 'none';
-            }
-            
-            showError(message) {
-                this.departuresList.innerHTML = `
-                    <div class="error-state">
-                        <div class="error-icon">⚠️</div>
-                        <h3>Erreur de chargement</h3>
-                        <p>${message}</p>
-                        <p style="margin-top: 20px; font-size: 14px;">
-                            Vérifiez que l'ID d'arrêt est correct ou réessayez plus tard.
-                        </p>
-                    </div>
-                `;
-                
-                this.stopBanner.style.display = 'none';
-                this.tableHeaders.style.display = 'none';
-            }
-            
-            showWelcomeMessage() {
-                this.departuresList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">🚂</div>
-                        <h3>Bienvenue sur SNCF Amiens Temps Réel</h3>
-                        <p>Pour commencer, ajoutez un identifiant d'arrêt dans l'URL :</p>
-                        <p style="margin: 20px 0; font-family: monospace; background: #f5f7fa; padding: 15px; border-radius: 8px;">
-                            <strong>Exemple:</strong> <a href="?id=1&mode=departures&q=10">?id=1&mode=departures&q=10</a>
-                        </p>
-                        <p>Utilisez les boutons ci-dessus pour basculer entre les départs et les arrivées.</p>
-                    </div>
-                `;
-                
-                this.stopBanner.style.display = 'none';
-                this.tableHeaders.style.display = 'none';
-                this.urlInfo.innerHTML = `
-                    <div>
-                        <strong>Instructions:</strong> Ajoutez <code>?id=NUMERO_ARRET</code> à l'URL
-                    </div>
-                    <div>
-                        <strong>Exemples:</strong> 
-                        <a href="?id=1">Arrêt 1</a> | 
-                        <a href="?id=2">Arrêt 2</a> | 
-                        <a href="?id=3">Arrêt 3</a>
-                    </div>
-                `;
-            }
-            
-            updateCurrentTime() {
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString('fr-FR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-                this.currentTime.textContent = timeStr;
-            }
-            
-            updateLastUpdateTime() {
-                if (this.lastUpdate) {
-                    const timeStr = this.lastUpdate.toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit'
-                    });
-                    this.lastUpdateEl.textContent = timeStr;
-                }
-            }
-            
-            startAutoRefresh() {
-                // Auto-refresh every 30 seconds
-                setInterval(() => {
-                    if (this.stopId) {
-                        this.fetchData();
-                    }
-                }, 30000);
-            }
-        }
-        
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', () => {
-            window.app = new SNCFDepartures();
+    for (const exc of sortedExceptions) {
+      const index = stops.findIndex(s => s.stop_id === exc.after_stop_id);
+      if (index !== -1) {
+        stops.splice(index + 1, 0, {
+          stop_id: exc.stop_id,
+          stop_name: exc.stop_name || `New Stop ${exc.stop_id}`,
+          arrival_time: exc.time,
+          departure_time: exc.time,
+          amended_arrival: exc.time,
+          amended_departure: exc.time,
+          amended: true,
+          status: "on_time",
+          is_last: false,
+          stop_sequence: exc.after_stop_sequence ? (parseInt(exc.after_stop_sequence) + 0.5).toString() : "999"
         });
+      }
+    }
+  }
+
+  // Обновляем флаг is_last для новой последней остановки
+  if (stops.length > 0) {
+    // Сортируем по stop_sequence для правильного определения последней остановки
+    stops.sort((a, b) => parseFloat(a.stop_sequence || "0") - parseFloat(b.stop_sequence || "0"));
+    stops[stops.length - 1].is_last = true;
+  }
+
+  // НЕ фильтруем отмененные остановки - они должны оставаться в списке
+  return stops;
+}
+
+// Определяем активные service_id на сегодня
+function getActiveServiceIds(calendar) {
+  const nowUTC = new Date();
+  const parisNow = new Date(nowUTC.toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+  const dayOfWeek = parisNow.getDay(); // 0 - воскресенье, 1 - понедельник и т.д.
+  const todayStr = getTodayDate(); // YYYYMMDD
+  
+  const activeServiceIds = [];
+  
+  // Маппинг дня недели для GTFS (monday=1, tuesday=2, ..., sunday=7)
+  const gtfsDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const todayGtfsDay = gtfsDays[dayOfWeek];
+  
+  for (const serviceId in calendar) {
+    const service = calendar[serviceId];
+    // Проверяем, что сегодняшняя дата в диапазоне действия service
+    if (service.start_date <= todayStr && service.end_date >= todayStr) {
+      // Проверяем, что service активен сегодня
+      if (service[todayGtfsDay] === "1") {
+        activeServiceIds.push(serviceId);
+      }
+    }
+  }
+  
+  return activeServiceIds;
+}
+
+// ---------------- WORKER ----------------
+export default {
+  async fetch(req, env) {
+    try {
+      const url = new URL(req.url);
+      const pathname = url.pathname.replace(/^\/|\/$/g, "");
+      const pathParts = pathname.split("/");
+
+      // Load GTFS
+      let gtfs = await env.kv.get("gtfs_parsed", { type: "json" });
+      if (!gtfs) {
+        gtfs = await loadAndParseGtfs();
+        await env.kv.put("gtfs_parsed", JSON.stringify(gtfs));
+      }
+
+      const nowMinutes = getParisMinutes();
+      const activeServiceIds = getActiveServiceIds(gtfs.calendar);
+      const activeServiceIdsSet = new Set(activeServiceIds);
+      const todayDate = getTodayDate();
+
+      // ---------------- STOP MONITORING ----------------
+      if (pathParts[0] === "stop_monitoring" && pathParts.length >= 2) {
+        const stop_id = pathParts[1];
+        const mode = pathParts[2] || "departures";
+        const quantity = Math.min(Number(url.searchParams.get("q") || 5), 100);
+        const showCanceled = url.searchParams.get("show_canceled") === "true";
+        const stopInfo = gtfs.stops[stop_id];
+        if (!stopInfo) return new Response(JSON.stringify({ status: "error", message: "Stop not found" }, null, 2), { status:404, headers:{"content-type":"application/json"} });
+
+        const rtData = await getRtData(env.kv, todayDate);
+
+        // Получаем все stop_times для этой остановки
+        let stopTimes = gtfs.stopTimes.filter(st => st.stop_id === stop_id);
         
-        // Handle browser back/forward buttons
-        window.addEventListener('popstate', () => {
-            location.reload();
+        // Обрабатываем каждый stop_time
+        const processedStopTimes = [];
+        
+        for (const st of stopTimes) {
+          const trip = gtfs.trips[st.trip_id];
+          if (!trip) continue;
+          
+          // Проверяем, что рейс активен сегодня
+          if (!activeServiceIdsSet.has(trip.service_id)) continue;
+          
+          const route = gtfs.routes[trip.route_id] || {};
+          
+          // Применяем RT изменения для всего рейса
+          const allTripStops = applyRtChanges(st.trip_id, gtfs.stopTimes, rtData[st.trip_id] || {});
+          
+          // Находим нашу остановку в обработанном списке
+          const processedStop = allTripStops.find(s => s.stop_id === stop_id);
+          if (!processedStop) continue;
+          
+          // Находим последнюю остановку рейса
+          const tripAllStops = gtfs.stopTimes.filter(x => x.trip_id === st.trip_id);
+          const lastStop = tripAllStops.length > 0 ? tripAllStops[tripAllStops.length - 1] : null;
+          const tripHeadsign = lastStop ? gtfs.stops[lastStop.stop_id]?.stop_name || "" : "";
+          
+          processedStopTimes.push({
+            ...processedStop,
+            trip_id: st.trip_id,
+            route_id: trip.route_id,
+            route_name: route.route_short_name || route.route_long_name,
+            route_color: route.route_color || "",
+            route_text_color: route.route_text_color || "",
+            trip_headsign: tripHeadsign,
+            stop_name: gtfs.stops[stop_id]?.stop_name || "",
+            service_id: trip.service_id
+          });
+        }
+        
+        // Сортируем по времени
+        processedStopTimes.sort((a, b) => {
+          const timeA = timeToMinutes(mode === "arrivals" ? a.amended_arrival : a.amended_departure);
+          const timeB = timeToMinutes(mode === "arrivals" ? b.amended_arrival : b.amended_departure);
+          return timeA - timeB;
         });
-    </script>
-</body>
-</html>
+
+        let result;
+        if (mode === "arrivals") {
+          // Показываем ближайшие прибытия
+          result = processedStopTimes.filter(st => 
+            timeToMinutes(st.amended_arrival) >= nowMinutes || 
+            (showCanceled && st.status === "canceled")
+          ).slice(0, quantity);
+        } else {
+          // Для отправлений исключаем последнюю остановку (там нет отправления)
+          result = processedStopTimes.filter(st => 
+            (!st.is_last && timeToMinutes(st.amended_departure) >= nowMinutes) ||
+            (showCanceled && st.status === "canceled" && !st.is_last)
+          ).slice(0, quantity);
+        }
+
+        return new Response(JSON.stringify({ 
+          status: "ok", 
+          stop: stopInfo, 
+          stop_id, 
+          mode, 
+          today_date: todayDate,
+          count: result.length, 
+          departures: result 
+        }, null, 2), { 
+          headers: {
+            "content-type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "no-store"
+          } 
+        });
+      }
+
+      // ---------------- TRIPS ----------------
+      if (pathParts[0] === "trips" && pathParts.length === 1) {
+        const rtData = await getRtData(env.kv, todayDate);
+        
+        // Фильтруем рейсы, активные сегодня
+        const activeTrips = Object.values(gtfs.trips)
+          .filter(trip => activeServiceIdsSet.has(trip.service_id));
+        
+        const tripsList = activeTrips.map(trip => {
+          const tripStops = gtfs.stopTimes.filter(st => st.trip_id === trip.trip_id);
+          if (!tripStops.length) return null;
+          
+          const firstDeparture = timeToMinutes(tripStops[0].departure_time);
+          const lastArrival = timeToMinutes(tripStops[tripStops.length - 1].arrival_time);
+          
+          // Проверяем RT статус
+          const rtTripData = rtData[trip.trip_id] || {};
+          let status = "on_time";
+          
+          // Проверяем, есть ли отмененные остановки в этом рейсе
+          if (rtTripData.canceled === true) {
+            status = "canceled";
+          } else if (rtTripData.stop_times) {
+            const canceledStops = Object.values(rtTripData.stop_times).filter(st => st.action === "cancel");
+            if (canceledStops.length > 0) {
+              status = "partially_canceled";
+            }
+          }
+          
+          const nextStopObj = tripStops.find(st => timeToMinutes(st.departure_time) >= nowMinutes);
+          const nextStop = nextStopObj ? gtfs.stops[nextStopObj.stop_id]?.stop_name || "" : null;
+          const route = gtfs.routes[trip.route_id] || {};
+          
+          return { 
+            trip_id: trip.trip_id, 
+            route_id: trip.route_id,
+            route_name: route.route_short_name || route.route_long_name,
+            from: gtfs.stops[tripStops[0].stop_id]?.stop_name || "", 
+            to: gtfs.stops[tripStops[tripStops.length - 1].stop_id]?.stop_name || "", 
+            next_stop: nextStop, 
+            status: status 
+          };
+        }).filter(Boolean);
+
+        return new Response(JSON.stringify({ 
+          status: "ok", 
+          count: tripsList.length, 
+          today_date: todayDate,
+          trips: tripsList 
+        }, null, 2), { 
+          headers: {
+            "content-type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+          } 
+        });
+      }
+
+      // ---------------- TRIP DETAIL ----------------
+      if (pathParts[0] === "trips" && pathParts.length >= 2) {
+        const trip_id = pathParts[1];
+        const mode = pathParts[2] || "realtime";
+        const trip = gtfs.trips[trip_id];
+        if (!trip) return new Response(JSON.stringify({status: "error", message: "Trip not found"}, null, 2), {status:404, headers:{"content-type":"application/json"}});
+
+        let tripStops = gtfs.stopTimes.filter(st => st.trip_id === trip_id);
+        const rtData = await getRtData(env.kv, todayDate);
+        
+        if (mode === "realtime") {
+          tripStops = applyRtChanges(trip_id, tripStops, rtData[trip_id] || {});
+        } else {
+          // Для non-realtime режима просто добавляем флаги
+          const lastStop = tripStops.length > 0 ? tripStops[tripStops.length - 1] : null;
+          tripStops = tripStops.map(st => ({
+            ...st,
+            amended_departure: st.departure_time,
+            amended_arrival: st.arrival_time,
+            amended: false,
+            status: "on_time",
+            is_last: st.stop_id === (lastStop ? lastStop.stop_id : null)
+          }));
+        }
+
+        const firstDeparture = timeToMinutes(tripStops[0]?.departure_time || "00:00:00");
+        const lastArrival = timeToMinutes(tripStops[tripStops.length - 1]?.arrival_time || "00:00:00");
+        const tripStatus = nowMinutes < firstDeparture ? "future" : nowMinutes > lastArrival ? "past" : "current";
+        const nextStopObj = tripStops.find(st => timeToMinutes(st.amended_departure) >= nowMinutes);
+        const nextStop = nextStopObj ? nextStopObj.stop_name : null;
+        const route = gtfs.routes[trip.route_id] || {};
+
+        // Добавляем названия остановок
+        const stopsWithNames = tripStops.map(st => ({
+          ...st,
+          stop_name: gtfs.stops[st.stop_id]?.stop_name || st.stop_name || `Stop ${st.stop_id}`
+        }));
+
+        return new Response(JSON.stringify({
+          status: "ok",
+          trip_id,
+          route_id: trip.route_id,
+          route_name: route.route_short_name || route.route_long_name,
+          operator: route.route_desc || "",
+          trip_status: tripStatus,
+          today_date: todayDate,
+          next_stop: nextStop,
+          stops: stopsWithNames
+        }, null, 2), { 
+          headers: {
+            "content-type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+          } 
+        });
+      }
+
+      // ---------------- RTEDIT ----------------
+      if (pathParts[0] === "rtedit") {
+        const passwordParam = pathParts[1];
+        if (!passwordParam || passwordParam !== env.password) {
+          return new Response(JSON.stringify({status: "error", message: "Access denied"}, null, 2), {status:403, headers:{"content-type":"application/json"}});
+        }
+
+        if (pathParts.length === 2) {
+          return new Response(JSON.stringify({
+            status: "ok", 
+            network_status: "operational", 
+            last_updated: new Date().toISOString(), 
+            message: "Realtime editing ready",
+            today_date: todayDate
+          }, null, 2), {
+            headers: {
+              "content-type": "application/json",
+              "Access-Control-Allow-Origin": "*"
+            }
+          });
+        }
+
+        if (pathParts[2] === "edit") {
+          const dateInput = pathParts[3];
+          const tripId = pathParts[5];
+          const actionType = pathParts[6];
+          const rtData = await getRtData(env.kv, dateInput);
+          const onlyFlag = url.searchParams.get("only") === "true";
+
+          // Отмена/восстановление всего рейса
+          if (actionType === "cancel" || actionType === "normalize") {
+            rtData[tripId] = rtData[tripId] || {stop_times: {}, stop_exceptions: []};
+            
+            if (actionType === "cancel") {
+              rtData[tripId].canceled = true;
+              await setRtData(env.kv, dateInput, rtData);
+              return new Response(JSON.stringify({
+                status: "ok", 
+                trip_id: tripId, 
+                action: "cancel",
+                message: "Trip canceled for this date",
+                date_input: dateInput,
+                date_used: convertDateToYYYYMMDD(dateInput)
+              }, null, 2), {
+                headers: {
+                  "content-type": "application/json",
+                  "Access-Control-Allow-Origin": "*"
+                }
+              });
+            } else if (actionType === "normalize") {
+              // Удаляем все изменения для этого рейса
+              delete rtData[tripId];
+              await setRtData(env.kv, dateInput, rtData);
+              return new Response(JSON.stringify({
+                status: "ok", 
+                trip_id: tripId, 
+                action: "normalize",
+                message: "All real-time changes cleared for this trip and date",
+                date_input: dateInput,
+                date_used: convertDateToYYYYMMDD(dateInput)
+              }, null, 2), {
+                headers: {
+                  "content-type": "application/json",
+                  "Access-Control-Allow-Origin": "*"
+                }
+              });
+            }
+          }
+
+          if (actionType === "stop_time") {
+            const stop_id = pathParts[7];
+            const action = pathParts[8];
+            const minutes = pathParts[9] ? Number(pathParts[9]) : 0;
+            
+            // Для действия cancel не должно быть распространения
+            if (action === "cancel") {
+              rtData[tripId] = rtData[tripId] || {stop_times: {}, stop_exceptions: []};
+              rtData[tripId].stop_times[stop_id] = {action, minutes: 0, propagate: false};
+            } else {
+              // Для delay/earlify проверяем флаг only
+              rtData[tripId] = rtData[tripId] || {stop_times: {}, stop_exceptions: []};
+              rtData[tripId].stop_times[stop_id] = {
+                action, 
+                minutes, 
+                propagate: !onlyFlag // Если only=true, то propagate=false, иначе propagate=true
+              };
+            }
+            
+            await setRtData(env.kv, dateInput, rtData);
+            return new Response(JSON.stringify({
+              status: "ok", 
+              trip_id: tripId, 
+              stop_id, 
+              action, 
+              minutes,
+              propagate: action === "cancel" ? false : !onlyFlag,
+              date_input: dateInput,
+              date_used: convertDateToYYYYMMDD(dateInput)
+            }, null, 2), {
+              headers: {
+                "content-type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+              }
+            });
+          }
+
+          if (actionType === "stop_exception") {
+            const stop_id = pathParts[7];
+            const after_stop_id = pathParts[8];
+            const hhmmss = pathParts[9];
+            const stop_name = decodeURIComponent(pathParts[10] || "");
+            
+            // Находим stop_sequence для after_stop_id
+            let afterStopSequence = "";
+            const stopTime = gtfs.stopTimes.find(st => st.trip_id === tripId && st.stop_id === after_stop_id);
+            if (stopTime) {
+              afterStopSequence = stopTime.stop_sequence;
+            }
+            
+            rtData[tripId] = rtData[tripId] || {stop_times: {}, stop_exceptions: []};
+            rtData[tripId].stop_exceptions.push({
+              stop_id, 
+              after_stop_id, 
+              after_stop_sequence: afterStopSequence,
+              time: hhmmss, 
+              stop_name
+            });
+            
+            await setRtData(env.kv, dateInput, rtData);
+            return new Response(JSON.stringify({
+              status: "ok", 
+              trip_id: tripId, 
+              stop_id, 
+              after_stop_id, 
+              time: hhmmss, 
+              stop_name,
+              date_input: dateInput,
+              date_used: convertDateToYYYYMMDD(dateInput)
+            }, null, 2), {
+              headers: {
+                "content-type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+              }
+            });
+          }
+        }
+        
+        // Добавим endpoint для проверки данных
+        if (pathParts[2] === "check") {
+          const dateInput = pathParts[3];
+          const tripId = pathParts[4];
+          const rtData = await getRtData(env.kv, dateInput);
+          
+          let responseData = {
+            status: "ok",
+            date_input: dateInput,
+            date_used: convertDateToYYYYMMDD(dateInput),
+            today_date: todayDate
+          };
+          
+          if (tripId) {
+            responseData.trip_data = rtData[tripId] || {};
+            responseData.trip_id = tripId;
+          } else {
+            responseData.all_data = rtData;
+          }
+          
+          return new Response(JSON.stringify(responseData, null, 2), {
+            headers: {"content-type": "application/json", "Access-Control-Allow-Origin": "*"}
+          });
+        }
+        
+        // Добавим endpoint для очистки данных
+        if (pathParts[2] === "clear") {
+          const dateInput = pathParts[3];
+          const tripId = pathParts[4];
+          const rtData = await getRtData(env.kv, dateInput);
+          
+          if (tripId) {
+            // Очищаем только один рейс
+            if (rtData[tripId]) {
+              delete rtData[tripId];
+              await setRtData(env.kv, dateInput, rtData);
+              return new Response(JSON.stringify({
+                status: "ok",
+                message: `Cleared data for trip ${tripId}`,
+                date_input: dateInput,
+                date_used: convertDateToYYYYMMDD(dateInput)
+              }, null, 2), {
+                headers: {"content-type": "application/json", "Access-Control-Allow-Origin": "*"}
+              });
+            } else {
+              return new Response(JSON.stringify({
+                status: "error",
+                message: `No data found for trip ${tripId}`
+              }, null, 2), {
+                status: 404,
+                headers: {"content-type": "application/json", "Access-Control-Allow-Origin": "*"}
+              });
+            }
+          } else {
+            // Очищаем все данные за дату
+            await setRtData(env.kv, dateInput, {});
+            return new Response(JSON.stringify({
+              status: "ok",
+              message: `Cleared all data for date ${dateInput}`,
+              date_input: dateInput,
+              date_used: convertDateToYYYYMMDD(dateInput)
+            }, null, 2), {
+              headers: {"content-type": "application/json", "Access-Control-Allow-Origin": "*"}
+            });
+          }
+        }
+      }
+
+      // ---------------- DEFAULT ENDPOINT ----------------
+      if (pathname === "") {
+        return new Response(JSON.stringify({
+          status: "ok",
+          endpoints: {
+            stop_monitoring: "/stop_monitoring/{stop_id}/[mode]?q=5",
+            trips_list: "/trips",
+            trip_detail: "/trips/{trip_id}/[realtime|scheduled]",
+            rtedit_check: "/rtedit/{password}/check/{date}/[trip_id]",
+            rtedit_clear: "/rtedit/{password}/clear/{date}/[trip_id]",
+            rtedit_trip_cancel: "/rtedit/{password}/edit/{date}/trip/{trip_id}/cancel",
+            rtedit_trip_normalize: "/rtedit/{password}/edit/{date}/trip/{trip_id}/normalize",
+            rtedit_stop_delay: "/rtedit/{password}/edit/{date}/trip/{trip_id}/stop_time/{stop_id}/delay/{minutes}[?only=true]",
+            rtedit_stop_earlify: "/rtedit/{password}/edit/{date}/trip/{trip_id}/stop_time/{stop_id}/earlify/{minutes}[?only=true]",
+            rtedit_stop_cancel: "/rtedit/{password}/edit/{date}/trip/{trip_id}/stop_time/{stop_id}/cancel"
+          },
+          today_date: todayDate,
+          now_minutes: nowMinutes,
+          active_service_ids: Array.from(activeServiceIdsSet)
+        }, null, 2), {
+          headers: {
+            "content-type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
+      }
+
+      return new Response(JSON.stringify({status: "error", message: "Invalid endpoint"}, null, 2), {status:404, headers:{"content-type":"application/json"}});
+    } catch(err) {
+      return new Response(JSON.stringify({status: "error", message: err.message}, null, 2), {status:500, headers:{"content-type":"application/json"}});
+    }
+  }
+};
