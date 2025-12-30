@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réseau SNCF Amiens - Temps Réel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(to right, #2c3e50, #4a6491);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .header h2 {
+            font-size: 18px;
+            font-weight: normal;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #4a6491;
+        }
+        
+        .update-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            align-self: flex-end;
+        }
+        
+        .update-btn:hover {
+            background: #218838;
+        }
+        
+        .stop-info {
+            padding: 20px;
+            background: #e9f7ef;
+            border-bottom: 2px solid #28a745;
+        }
+        
+        .stop-name {
+            font-size: 22px;
+            color: #155724;
+            margin-bottom: 5px;
+        }
+        
+        .stop-id {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .departures-container {
+            padding: 20px;
+        }
+        
+        .departures-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .mode-switch {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .mode-btn {
+            padding: 8px 20px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: #4a6491;
+            color: white;
+        }
+        
+        .count-info {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-size: 18px;
+        }
+        
+        .departure-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #e9ecef;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .departure-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .route-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .route-number {
+            background: #4a6491;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        .direction {
+            font-size: 18px;
+            color: #2c3e50;
+            font-weight: 600;
+            text-align: right;
+            flex: 1;
+            margin-left: 15px;
+        }
+        
+        .time-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .time {
+            font-size: 28px;
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .original-time {
+            text-decoration: line-through;
+            color: #6c757d;
+            font-size: 22px;
+        }
+        
+        .amended-time {
+            margin-left: 10px;
+        }
+        
+        /* Status colors */
+        .status-on_time {
+            color: #28a745;
+        }
+        
+        .status-delayed {
+            color: #dc3545;
+        }
+        
+        .status-early {
+            color: #ffc107;
+        }
+        
+        .status-canceled {
+            color: #dc3545;
+        }
+        
+        .canceled-label {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+        
+        .status-dot {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 5px;
+            height: 100%;
+        }
+        
+        .departure-card.on_time .status-dot {
+            background: #28a745;
+        }
+        
+        .departure-card.delayed .status-dot {
+            background: #dc3545;
+        }
+        
+        .departure-card.early .status-dot {
+            background: #ffc107;
+        }
+        
+        .departure-card.canceled .status-dot {
+            background: #dc3545;
+        }
+        
+        .trip-id {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .on_time-indicator {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .delayed-indicator {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .early-indicator {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .canceled-indicator {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #4a6491;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+            font-size: 18px;
+            background: #f8d7da;
+            border-radius: 10px;
+            margin: 20px;
+        }
+        
+        .time-now {
+            background: #4a6491;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .input-group {
+                width: 100%;
+            }
+            
+            .departure-card {
+                padding: 15px;
+            }
+            
+            .route-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .route-number {
+                margin-bottom: 10px;
+            }
+            
+            .direction {
+                text-align: left;
+                margin-left: 0;
+            }
+            
+            .time {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏱️ Réseau SNCF Amiens - Temps Réel</h1>
+            <h2>Suivi des départs et arrivées en temps réel</h2>
+        </div>
+        
+        <div class="controls">
+            <div class="input-group">
+                <label for="stopId">Identifiant de l'arrêt (Stop ID):</label>
+                <input type="text" id="stopId" placeholder="Ex: 1, 2, 3..." value="">
+            </div>
+            
+            <div class="input-group">
+                <label for="mode">Type d'affichage:</label>
+                <select id="mode">
+                    <option value="departures">Départs</option>
+                    <option value="arrivals">Arrivées</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="quantity">Nombre à afficher:</label>
+                <input type="number" id="quantity" min="1" max="50" value="10">
+            </div>
+            
+            <button class="update-btn" id="updateBtn">🔄 Actualiser</button>
+        </div>
+        
+        <div id="stopInfo" class="stop-info" style="display: none;">
+            <div class="stop-name" id="stopName"></div>
+            <div class="stop-id">ID: <span id="stopIdDisplay"></span></div>
+        </div>
+        
+        <div id="departuresSection" class="departures-container">
+            <div class="departures-header">
+                <div class="mode-switch">
+                    <button class="mode-btn active" data-mode="departures">Départs</button>
+                    <button class="mode-btn" data-mode="arrivals">Arrivées</button>
+                </div>
+                <div class="count-info">
+                    Affichage: <span id="currentCount">0</span> sur <span id="totalCount">0</span>
+                </div>
+            </div>
+            
+            <div id="departuresList"></div>
+            
+            <div class="time-now" id="currentTime"></div>
+        </div>
+    </div>
+    
+    <script>
+        class DeparturesViewer {
+            constructor() {
+                this.stopId = null;
+                this.mode = 'departures';
+                this.quantity = 10;
+                this.stopInfo = null;
+                this.departures = [];
+                
+                this.initElements();
+                this.loadFromURL();
+                this.bindEvents();
+                this.updateDisplay();
+            }
+            
+            initElements() {
+                this.stopIdInput = document.getElementById('stopId');
+                this.modeSelect = document.getElementById('mode');
+                this.quantityInput = document.getElementById('quantity');
+                this.updateBtn = document.getElementById('updateBtn');
+                this.stopInfoDiv = document.getElementById('stopInfo');
+                this.stopNameSpan = document.getElementById('stopName');
+                this.stopIdDisplaySpan = document.getElementById('stopIdDisplay');
+                this.departuresList = document.getElementById('departuresList');
+                this.currentCountSpan = document.getElementById('currentCount');
+                this.totalCountSpan = document.getElementById('totalCount');
+                this.currentTimeSpan = document.getElementById('currentTime');
+                this.modeBtns = document.querySelectorAll('.mode-btn');
+            }
+            
+            loadFromURL() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const stopId = urlParams.get('id');
+                const mode = urlParams.get('mode') || 'departures';
+                const quantity = urlParams.get('q') || 10;
+                
+                if (stopId) {
+                    this.stopIdInput.value = stopId;
+                    this.stopId = stopId;
+                }
+                
+                if (mode) {
+                    this.mode = mode;
+                    this.modeSelect.value = mode;
+                    this.updateModeButtons(mode);
+                }
+                
+                if (quantity) {
+                    this.quantity = parseInt(quantity);
+                    this.quantityInput.value = this.quantity;
+                }
+            }
+            
+            bindEvents() {
+                this.updateBtn.addEventListener('click', () => this.updateDisplay());
+                
+                this.stopIdInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.updateDisplay();
+                });
+                
+                this.modeSelect.addEventListener('change', (e) => {
+                    this.mode = e.target.value;
+                    this.updateModeButtons(this.mode);
+                    this.updateDisplay();
+                });
+                
+                this.modeBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const mode = e.target.dataset.mode;
+                        this.mode = mode;
+                        this.modeSelect.value = mode;
+                        this.updateModeButtons(mode);
+                        this.updateDisplay();
+                    });
+                });
+                
+                this.quantityInput.addEventListener('change', () => {
+                    this.quantity = parseInt(this.quantityInput.value);
+                    if (this.quantity < 1) this.quantity = 1;
+                    if (this.quantity > 50) this.quantity = 50;
+                    this.updateDisplay();
+                });
+            }
+            
+            updateModeButtons(activeMode) {
+                this.modeBtns.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.mode === activeMode);
+                });
+            }
+            
+            async updateDisplay() {
+                this.stopId = this.stopIdInput.value.trim();
+                
+                if (!this.stopId) {
+                    this.showError("Veuillez saisir un identifiant d'arrêt");
+                    return;
+                }
+                
+                // Mettre à jour l'URL sans recharger la page
+                const url = new URL(window.location);
+                url.searchParams.set('id', this.stopId);
+                url.searchParams.set('mode', this.mode);
+                url.searchParams.set('q', this.quantity);
+                window.history.pushState({}, '', url);
+                
+                await this.fetchData();
+                this.updateCurrentTime();
+                
+                // Actualiser automatiquement toutes les 30 secondes
+                setTimeout(() => this.updateDisplay(), 30000);
+            }
+            
+            async fetchData() {
+                this.showLoading();
+                
+                try {
+                    const response = await fetch(
+                        `https://redsncfamiens.dmytrothemir.workers.dev/stop_monitoring/${this.stopId}/${this.mode}?q=${this.quantity}`
+                    );
+                    
+                    if (!response.ok) {
+                        throw new Error(`Erreur HTTP: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.status === 'error') {
+                        throw new Error(data.message);
+                    }
+                    
+                    this.stopInfo = data.stop;
+                    this.departures = data.departures || [];
+                    
+                    this.render();
+                } catch (error) {
+                    this.showError(error.message);
+                }
+            }
+            
+            render() {
+                this.renderStopInfo();
+                this.renderDepartures();
+                this.updateCount();
+            }
+            
+            renderStopInfo() {
+                if (this.stopInfo) {
+                    this.stopInfoDiv.style.display = 'block';
+                    this.stopNameSpan.textContent = this.stopInfo.stop_name || 'Arrêt inconnu';
+                    this.stopIdDisplaySpan.textContent = this.stopInfo.stop_id;
+                } else {
+                    this.stopInfoDiv.style.display = 'none';
+                }
+            }
+            
+            renderDepartures() {
+                if (this.departures.length === 0) {
+                    this.departuresList.innerHTML = `
+                        <div class="no-data">
+                            <div style="font-size: 48px; margin-bottom: 20px;">🚌</div>
+                            <div>Aucun départ/arrivée trouvé pour cet arrêt</div>
+                            <div style="margin-top: 10px; font-size: 14px;">Vérifiez l'identifiant et réessayez</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                
+                this.departures.forEach(dep => {
+                    const status = dep.status || 'on_time';
+                    const isCanceled = status === 'canceled';
+                    const isDelayed = status === 'delayed';
+                    const isEarly = status === 'early';
+                    const isOnTime = status === 'on_time';
+                    
+                    const originalTime = this.mode === 'arrivals' ? dep.arrival_time : dep.departure_time;
+                    const amendedTime = this.mode === 'arrivals' ? dep.amended_arrival : dep.amended_departure;
+                    
+                    const timeStr = originalTime ? originalTime.substring(0, 5) : '--:--';
+                    const amendedTimeStr = amendedTime ? amendedTime.substring(0, 5) : '--:--';
+                    
+                    const statusClass = `status-${status}`;
+                    const cardClass = `${status}`;
+                    
+                    const statusText = {
+                        'on_time': 'À l\'heure',
+                        'delayed': 'Retardé',
+                        'early': 'En avance',
+                        'canceled': 'Annulé'
+                    }[status] || status;
+                    
+                    let timeHtml;
+                    if (isCanceled) {
+                        timeHtml = `
+                            <div class="time ${statusClass}">
+                                <span class="original-time">${timeStr}</span>
+                                <span class="canceled-label">ANNULÉ</span>
+                            </div>
+                        `;
+                    } else if (isDelayed || isEarly) {
+                        timeHtml = `
+                            <div class="time ${statusClass}">
+                                <span class="original-time">${timeStr}</span>
+                                <span class="amended-time">${amendedTimeStr}</span>
+                            </div>
+                        `;
+                    } else {
+                        timeHtml = `
+                            <div class="time ${statusClass}">${timeStr}</div>
+                        `;
+                    }
+                    
+                    html += `
+                        <div class="departure-card ${cardClass}">
+                            <div class="status-dot"></div>
+                            <div class="status-indicator ${status}-indicator">${statusText}</div>
+                            
+                            <div class="route-header">
+                                <div class="route-number">${dep.route_name || '??'}</div>
+                                <div class="direction">${dep.trip_headsign || 'Direction inconnue'}</div>
+                            </div>
+                            
+                            <div class="time-section">
+                                ${timeHtml}
+                            </div>
+                            
+                            <div class="trip-id">Trip: ${dep.trip_id}</div>
+                        </div>
+                    `;
+                });
+                
+                this.departuresList.innerHTML = html;
+            }
+            
+            updateCount() {
+                this.currentCountSpan.textContent = this.departures.length;
+                this.totalCountSpan.textContent = this.departures.length;
+            }
+            
+            updateCurrentTime() {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('fr-FR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                this.currentTimeSpan.textContent = `Heure actuelle: ${timeStr} - Prochaine actualisation dans 30 secondes`;
+            }
+            
+            showLoading() {
+                this.departuresList.innerHTML = `
+                    <div class="loading">
+                        <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+                        <div>Chargement des données...</div>
+                        <div style="margin-top: 10px; font-size: 14px;">Veuillez patienter</div>
+                    </div>
+                `;
+            }
+            
+            showError(message) {
+                this.departuresList.innerHTML = `
+                    <div class="error">
+                        <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                        <div>Erreur lors du chargement</div>
+                        <div style="margin-top: 10px; font-size: 14px;">${message}</div>
+                    </div>
+                `;
+                this.stopInfoDiv.style.display = 'none';
+            }
+        }
+        
+        // Initialiser l'application
+        document.addEventListener('DOMContentLoaded', () => {
+            new DeparturesViewer();
+        });
+        
+        // Permettre de naviguer avec les boutons avant/arrière du navigateur
+        window.addEventListener('popstate', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>
