@@ -131,21 +131,22 @@
             position: relative;
         }
         
-        /* Вертикальная соединительная линия - СДЕЛАЕМ ПОИНОМУ */
+        /* Вертикальная соединительная линия - ВАШ СТИЛЬ */
         .stop-column::after {
             content: '';
             position: absolute;
             top: 0;
-            bottom: 0;
-            left: 10px; /* Сдвигаем линию левее */
-            width: 2px;
-            background: #FFD100;
+            bottom: 50px;
+            left: 9px;
+            width: 17px;
+            background: #1700ff94;
             z-index: 1;
         }
         
-        /* Для второй колонки сместим линию */
+        /* Для второй колонки сместим линию - ВАШ СТИЛЬ */
         .stop-column:nth-child(2)::after {
-            left: 10px;
+            top: 15px;
+            left: 9.5px;
         }
         
         .stop-item {
@@ -155,36 +156,36 @@
             min-height: 30px;
         }
         
-        /* Точки остановок - УЛУЧШЕННЫЙ ВИД */
+        /* Точки остановок - ВАШ СТИЛЬ */
         .stop-dot {
             position: absolute;
-            left: 5px;
+            left: 8px;
             top: 50%;
             transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            background: #FFD100;
+            width: 20px;
+            height: 20px;
+            background: #0e88d5;
             border-radius: 50%;
             z-index: 2;
             border: 2px solid #003A7A;
         }
         
         .stop-name {
-            font-weight: 600;
+            font-weight: 700;
             color: white;
-            font-size: 1.1rem;
+            font-size: 1.5rem;
             line-height: 1.3;
-            padding-left: 30px; /* Увеличил отступ для текста */
-            min-height: 30px;
+            padding-left: 90px;
+            min-height: 0px;
             display: flex;
             align-items: center;
         }
         
         /* Первая остановка (следующая) выделена */
         .stop-item.first-next .stop-dot {
-            width: 16px;
-            height: 16px;
-            left: 3px;
+            width: 24px;
+            height: 24px;
+            left: 6px;
             background: #FFD100;
             border: 3px solid #003A7A;
             box-shadow: 0 0 0 2px #FFD100;
@@ -193,7 +194,7 @@
         .stop-item.first-next .stop-name {
             color: #FFD100;
             font-weight: 700;
-            font-size: 1.2rem;
+            font-size: 1.6rem;
         }
         
         /* ПРАВАЯ ПОЛОВИНА ЭКРАНА - ПОЕЗД */
@@ -368,16 +369,35 @@
                 height: 65px;
             }
             
+            /* Адаптация для мобильных устройств */
             .stop-column::after {
                 left: 15px;
+                width: 15px;
+            }
+            
+            .stop-column:nth-child(2)::after {
+                left: 15.5px;
             }
             
             .stop-dot {
-                left: 10px;
+                left: 12px;
+                width: 18px;
+                height: 18px;
             }
             
             .stop-name {
-                padding-left: 35px;
+                padding-left: 60px;
+                font-size: 1.3rem;
+            }
+            
+            .stop-item.first-next .stop-dot {
+                width: 22px;
+                height: 22px;
+                left: 10px;
+            }
+            
+            .stop-item.first-next .stop-name {
+                font-size: 1.4rem;
             }
         }
         
@@ -399,16 +419,35 @@
                 gap: 20px;
             }
             
+            /* Адаптация для мобильных устройств */
             .stop-column::after {
-                left: 15px;
+                left: 20px;
+                width: 15px;
+            }
+            
+            .stop-column:nth-child(2)::after {
+                left: 20.5px;
             }
             
             .stop-dot {
-                left: 10px;
+                left: 17px;
+                width: 18px;
+                height: 18px;
             }
             
             .stop-name {
-                padding-left: 35px;
+                padding-left: 65px;
+                font-size: 1.2rem;
+            }
+            
+            .stop-item.first-next .stop-dot {
+                width: 22px;
+                height: 22px;
+                left: 15px;
+            }
+            
+            .stop-item.first-next .stop-name {
+                font-size: 1.3rem;
             }
             
             .train-item {
@@ -873,7 +912,7 @@
                 moreText.textContent = `+${nextStops.length - maxStops} arrêts`;
                 moreText.style.fontStyle = 'italic';
                 moreText.style.color = '#a0c8ff';
-                moreText.style.paddingLeft = '30px';
+                moreText.style.paddingLeft = '90px';
                 
                 moreStops.appendChild(moreText);
                 
