@@ -54,25 +54,46 @@
         }
         
         .input-group {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         
-        #tripIdInput {
+        .input-field {
             flex: 1;
+            min-width: 200px;
+        }
+        
+        .input-field label {
+            display: block;
+            text-align: left;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+        
+        #stopIdInput, #routeSelect {
+            width: 100%;
             padding: 15px 20px;
             border: 2px solid #cbd5e1;
             border-radius: 12px;
             font-size: 1.1rem;
             transition: all 0.3s ease;
+            background-color: white;
         }
         
-        #tripIdInput:focus {
+        #stopIdInput:focus, #routeSelect:focus {
             outline: none;
             border-color: #4f46e5;
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        #routeSelect {
+            height: 52px;
         }
         
         #loadBtn {
@@ -85,11 +106,20 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            align-self: flex-end;
+            height: 52px;
         }
         
         #loadBtn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        #loadBtn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .loading {
@@ -166,15 +196,7 @@
         .train-unit {
             display: flex;
             align-items: center;
-            margin: 0 5px; /* Уменьшено с 10px до 5px */
-        }
-        
-        .train-unit-label {
-            text-align: center;
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-top: 10px;
-            font-weight: 500;
+            margin: 0 5px;
         }
         
         .train-item {
@@ -233,6 +255,79 @@
             border-radius: 20px;
             font-weight: 600;
             font-size: 0.9rem;
+        }
+        
+        .stops-list {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stops-list h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #475569;
+            font-size: 1.2rem;
+        }
+        
+        .stop-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s;
+        }
+        
+        .stop-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stop-item:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .stop-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .stop-time {
+            color: #64748b;
+            font-family: monospace;
+            background: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .stop-status {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .stop-status.on_time {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .stop-status.delayed {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .stop-status.early {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .stop-status.canceled {
+            background: #fee2e2;
+            color: #991b1b;
         }
         
         .instructions {
@@ -298,13 +393,17 @@
                 flex-direction: column;
             }
             
+            .input-field {
+                min-width: 100%;
+            }
+            
             .train-item {
                 width: 60px;
                 height: 60px;
             }
             
             .train-unit {
-                margin: 0 2px; /* Еще меньше на мобильных */
+                margin: 0 2px;
             }
             
             .info-grid {
@@ -322,8 +421,17 @@
         
         <div class="trip-input">
             <div class="input-group">
-                <input type="text" id="tripIdInput" placeholder="Entrez l'ID du trajet (ex: S1DA_T17)">
-                <button id="loadBtn">Charger les données</button>
+                <div class="input-field">
+                    <label for="stopIdInput">Arrêt (ID d'arrêt)</label>
+                    <input type="text" id="stopIdInput" placeholder="Ex: PA0001, PA0002">
+                </div>
+                <div class="input-field">
+                    <label for="routeSelect">Ligne</label>
+                    <select id="routeSelect">
+                        <option value="">Sélectionnez d'abord un arrêt</option>
+                    </select>
+                </div>
+                <button id="loadBtn" disabled>Voir le prochain train</button>
             </div>
         </div>
         
@@ -335,7 +443,7 @@
                     </circle>
                 </svg>
             </div>
-            Chargement des données du train...
+            Chargement des données...
         </div>
         
         <div id="error" class="error" style="display: none;"></div>
@@ -343,16 +451,16 @@
         <div id="trainInfo" class="train-info" style="display: none;">
             <div class="info-grid">
                 <div class="info-card">
-                    <h3>ID du trajet</h3>
-                    <p id="infoTripId">-</p>
+                    <h3>Prochain train à</h3>
+                    <p id="infoDepartureTime">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>Destination</h3>
+                    <p id="infoDestination">-</p>
                 </div>
                 <div class="info-card">
                     <h3>Matériel roulant</h3>
                     <p id="infoRollingStock">-</p>
-                </div>
-                <div class="info-card">
-                    <h3>Total des wagons</h3>
-                    <p id="infoTotalWagons">-</p>
                 </div>
                 <div class="info-card">
                     <h3>Composition</h3>
@@ -390,13 +498,17 @@
             </div>
         </div>
         
+        <div id="nextStops" class="stops-list" style="display: none;">
+            <h3>Arrêts suivants après cette station</h3>
+            <div id="stopsContainer">
+                <!-- Next stops will be rendered here -->
+            </div>
+        </div>
+        
         <div class="instructions">
             <h3>Comment utiliser</h3>
-            <p>Entrez l'ID du trajet dans le champ ci-dessus pour charger les données du train.</p>
-            <p>Vous pouvez également utiliser les paramètres d'URL : <code>?trip=TRIP_ID</code></p>
-            <p class="code-example">
-                Exemple d'URL : https://votredomaine.com/?trip=S1DA_T17
-            </p>
+            <p>Entrez l'ID d'un arrêt (ex: PA0001) puis sélectionnez une ligne pour voir le prochain train et sa densité.</p>
+            <p>Exemples d'ID d'arrêt: PA0001 (Paris Nord), PA0002 (Paris Est), etc.</p>
             <p>L'affichage du train montre le remplissage des wagons par des codes couleur.</p>
         </div>
     </div>
@@ -407,7 +519,11 @@
         const API_BASE_URL = 'https://redsncfamiens.dmytrothemir.workers.dev';
         const IMAGES_BASE_PATH = './';
         
-        let tripIdInput, loadBtn, loadingEl, errorEl, trainInfoEl, trainDisplayEl, refreshBtn;
+        let stopIdInput, routeSelect, loadBtn, loadingEl, errorEl, trainInfoEl, trainDisplayEl, refreshBtn, nextStopsEl;
+        let currentDepartures = [];
+        let currentStopId = '';
+        let currentRouteId = '';
+        let currentTripData = null;
         
         function showLoading() {
             if (loadingEl) loadingEl.style.display = 'block';
@@ -444,6 +560,14 @@
             if (trainDisplayEl) trainDisplayEl.style.display = 'none';
         }
         
+        function showNextStops() {
+            if (nextStopsEl) nextStopsEl.style.display = 'block';
+        }
+        
+        function hideNextStops() {
+            if (nextStopsEl) nextStopsEl.style.display = 'none';
+        }
+        
         function getCrowdDescription(level) {
             switch (level) {
                 case 0: return 'INCONNU';
@@ -454,15 +578,24 @@
             }
         }
         
-        async function loadTrainData(tripId) {
+        function getStatusDescription(status) {
+            switch (status) {
+                case 'on_time': return 'À l\'heure';
+                case 'delayed': return 'Retardé';
+                case 'early': return 'En avance';
+                case 'canceled': return 'Annulé';
+                default: return 'À l\'heure';
+            }
+        }
+        
+        // Charger les départs depuis un arrêt
+        async function loadStopDepartures(stopId) {
             showLoading();
             hideError();
-            hideTrainInfo();
-            hideTrainDisplay();
             
             try {
-                const apiUrl = `${API_BASE_URL}/trips/${tripId}/realtime/crowd`;
-                console.log('Requête API:', apiUrl);
+                const apiUrl = `${API_BASE_URL}/stop_monitoring/${stopId}/departures`;
+                console.log('Requête API pour les départs:', apiUrl);
                 
                 const response = await fetch(apiUrl);
                 
@@ -476,85 +609,233 @@
                     throw new Error(data.message);
                 }
                 
-                console.log('Données reçues:', data);
-                displayTrainData(data);
+                console.log('Départs reçus:', data);
+                return data.departures || [];
                 
             } catch (error) {
-                console.error('Erreur de chargement:', error);
-                
-                // Fallback vers l'API standard si crowd n'est pas disponible
-                try {
-                    console.log('Tentative avec l\'API standard...');
-                    const fallbackUrl = `${API_BASE_URL}/trips/${tripId}/realtime`;
-                    const fallbackResponse = await fetch(fallbackUrl);
-                    
-                    if (fallbackResponse.ok) {
-                        const fallbackData = await fallbackResponse.json();
-                        console.log('Données standard reçues:', fallbackData);
-                        
-                        const crowdData = {
-                            trip_id: fallbackData.trip_id,
-                            rolling_stock: fallbackData.rolling_stock || 'RER NG2',
-                            crowd: [0, 0, 0, 0, 0],
-                            crowd_descriptions: ['INCONNU', 'INCONNU', 'INCONNU', 'INCONNU', 'INCONNU'],
-                            type_info: {
-                                name: fallbackData.rolling_stock || 'RER NG2',
-                                is_double: fallbackData.rolling_stock === 'RER NG2' ? true : false,
-                                vehicle_count: 5,
-                                vehicle_count2: fallbackData.rolling_stock === 'RER NG2' ? 5 : 0,
-                                total_vehicles: fallbackData.rolling_stock === 'RER NG2' ? 10 : 5
-                            }
-                        };
-                        
-                        displayTrainData(crowdData);
-                        showError(`Données d'affluence non disponibles. Utilisation des données par défaut pour ${fallbackData.rolling_stock || 'RER NG2'}`);
-                        return;
-                    }
-                } catch (fallbackError) {
-                    console.error('Erreur avec l\'API standard:', fallbackError);
-                }
-                
-                showError(`Impossible de charger les données du train: ${error.message}. Vérifiez l'ID du trajet.`);
+                console.error('Erreur de chargement des départs:', error);
+                throw error;
             } finally {
                 hideLoading();
             }
         }
         
-        function displayTrainData(data) {
-            console.log('Affichage des données:', data);
+        // Extraire les lignes uniques des départs
+        function extractUniqueRoutes(departures) {
+            const routeMap = new Map();
             
-            document.getElementById('infoTripId').textContent = data.trip_id;
-            document.getElementById('infoRollingStock').textContent = data.rolling_stock;
+            departures.forEach(departure => {
+                if (departure.route_id && departure.route_name) {
+                    if (!routeMap.has(departure.route_id)) {
+                        routeMap.set(departure.route_id, {
+                            route_id: departure.route_id,
+                            route_name: departure.route_name,
+                            route_color: departure.route_color || '#4f46e5',
+                            route_text_color: departure.route_text_color || '#ffffff'
+                        });
+                    }
+                }
+            });
             
-            if (data.type_info) {
-                document.getElementById('infoTotalWagons').textContent = data.type_info.total_vehicles;
+            return Array.from(routeMap.values());
+        }
+        
+        // Remplir la liste déroulante des lignes
+        function populateRouteSelect(routes) {
+            const routeSelect = document.getElementById('routeSelect');
+            routeSelect.innerHTML = '<option value="">Sélectionnez une ligne</option>';
+            
+            routes.forEach(route => {
+                const option = document.createElement('option');
+                option.value = route.route_id;
+                option.textContent = `${route.route_name} (${route.route_id})`;
+                option.style.backgroundColor = `#${route.route_color || '4f46e5'}`;
+                option.style.color = `#${route.route_text_color || 'ffffff'}`;
+                routeSelect.appendChild(option);
+            });
+            
+            // Activer le bouton si des lignes sont disponibles
+            const loadBtn = document.getElementById('loadBtn');
+            loadBtn.disabled = routes.length === 0;
+        }
+        
+        // Trouver le prochain départ pour une ligne donnée
+        function findNextDeparture(departures, routeId) {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            
+            // Filtrer les départs pour la ligne sélectionnée et les départs futurs
+            const routeDepartures = departures.filter(departure => {
+                if (departure.route_id !== routeId) return false;
+                if (departure.status === 'canceled') return false;
                 
-                const composition = data.type_info.is_double ? 
-                    `Double (${data.type_info.vehicle_count} + ${data.type_info.vehicle_count2})` : 
-                    `Simple (${data.type_info.vehicle_count})`;
+                const departureTime = departure.amended_departure || departure.departure_time;
+                const departureMinutes = timeToMinutes(departureTime);
+                return departureMinutes >= currentMinutes;
+            });
+            
+            // Trier par heure de départ
+            routeDepartures.sort((a, b) => {
+                const timeA = timeToMinutes(a.amended_departure || a.departure_time);
+                const timeB = timeToMinutes(b.amended_departure || b.departure_time);
+                return timeA - timeB;
+            });
+            
+            return routeDepartures.length > 0 ? routeDepartures[0] : null;
+        }
+        
+        // Convertir le temps HH:MM:SS en minutes
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+        
+        // Formater l'heure pour l'affichage
+        function formatTime(timeStr) {
+            if (!timeStr) return '--:--';
+            const [hours, minutes] = timeStr.split(':');
+            return `${hours}:${minutes}`;
+        }
+        
+        // Charger les données détaillées d'un voyage
+        async function loadTripData(tripId) {
+            showLoading();
+            hideError();
+            hideTrainInfo();
+            hideTrainDisplay();
+            hideNextStops();
+            
+            try {
+                const apiUrl = `${API_BASE_URL}/trips/${tripId}/realtime`;
+                console.log('Requête API pour le voyage:', apiUrl);
+                
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur API: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'error') {
+                    throw new Error(data.message);
+                }
+                
+                console.log('Données du voyage reçues:', data);
+                return data;
+                
+            } catch (error) {
+                console.error('Erreur de chargement du voyage:', error);
+                throw error;
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Afficher les données du train
+        function displayTrainData(tripData, departureData) {
+            console.log('Affichage des données du train:', tripData);
+            
+            // Mettre à jour les informations
+            document.getElementById('infoDepartureTime').textContent = 
+                formatTime(departureData.amended_departure || departureData.departure_time);
+            document.getElementById('infoDestination').textContent = departureData.trip_headsign || 'Inconnue';
+            document.getElementById('infoRollingStock').textContent = tripData.rolling_stock || 'Inconnu';
+            
+            if (tripData.type_info) {
+                const composition = tripData.type_info.is_double ? 
+                    `Double (${tripData.type_info.vehicle_count} + ${tripData.type_info.vehicle_count2})` : 
+                    `Simple (${tripData.type_info.vehicle_count})`;
                 document.getElementById('infoComposition').textContent = composition;
                 
-                renderTrain(data);
+                renderTrain(tripData);
             } else {
                 console.warn('Pas de type_info dans les données');
-                document.getElementById('infoTotalWagons').textContent = data.crowd.length;
-                document.getElementById('infoComposition').textContent = 'Inconnu';
-                
                 const fallbackData = {
                     type_info: {
                         is_double: false,
-                        vehicle_count: data.crowd.length,
+                        vehicle_count: tripData.crowd.length,
                         vehicle_count2: 0,
-                        total_vehicles: data.crowd.length
+                        total_vehicles: tripData.crowd.length
                     },
-                    crowd: data.crowd
+                    crowd: tripData.crowd
                 };
                 
                 renderTrain(fallbackData);
             }
             
+            // Afficher les arrêts suivants
+            displayNextStops(tripData, currentStopId);
+            
+            // Afficher les sections
             showTrainInfo();
             showTrainDisplay();
+            showNextStops();
+        }
+        
+        // Afficher les arrêts suivants
+        function displayNextStops(tripData, currentStopId) {
+            const stopsContainer = document.getElementById('stopsContainer');
+            stopsContainer.innerHTML = '';
+            
+            if (!tripData.stops || !Array.isArray(tripData.stops)) {
+                stopsContainer.innerHTML = '<p style="text-align: center; color: #64748b;">Aucun arrêt disponible</p>';
+                return;
+            }
+            
+            // Trier les arrêts par séquence
+            const sortedStops = [...tripData.stops].sort((a, b) => {
+                const seqA = parseFloat(a.stop_sequence || 0);
+                const seqB = parseFloat(b.stop_sequence || 0);
+                return seqA - seqB;
+            });
+            
+            // Trouver l'index de l'arrêt actuel
+            const currentIndex = sortedStops.findIndex(stop => stop.stop_id === currentStopId);
+            
+            if (currentIndex === -1 || currentIndex >= sortedStops.length - 1) {
+                stopsContainer.innerHTML = '<p style="text-align: center; color: #64748b;">Aucun arrêt suivant disponible</p>';
+                return;
+            }
+            
+            // Afficher les arrêts suivants
+            const nextStops = sortedStops.slice(currentIndex + 1);
+            
+            nextStops.forEach(stop => {
+                const stopItem = document.createElement('div');
+                stopItem.className = 'stop-item';
+                
+                const stopName = document.createElement('div');
+                stopName.className = 'stop-name';
+                stopName.textContent = stop.stop_name || `Arrêt ${stop.stop_id}`;
+                
+                const stopDetails = document.createElement('div');
+                stopDetails.style.display = 'flex';
+                stopDetails.style.gap = '10px';
+                stopDetails.style.alignItems = 'center';
+                
+                const stopTime = document.createElement('div');
+                stopTime.className = 'stop-time';
+                stopTime.textContent = formatTime(stop.amended_arrival || stop.arrival_time);
+                
+                const stopStatus = document.createElement('div');
+                stopStatus.className = `stop-status ${stop.status || 'on_time'}`;
+                stopStatus.textContent = getStatusDescription(stop.status);
+                
+                stopDetails.appendChild(stopTime);
+                if (stop.status && stop.status !== 'on_time') {
+                    stopDetails.appendChild(stopStatus);
+                }
+                
+                stopItem.appendChild(stopName);
+                stopItem.appendChild(stopDetails);
+                stopsContainer.appendChild(stopItem);
+            });
+            
+            if (nextStops.length === 0) {
+                stopsContainer.innerHTML = '<p style="text-align: center; color: #64748b;">Terminus - Aucun arrêt suivant</p>';
+            }
         }
         
         function renderTrain(data) {
@@ -571,7 +852,7 @@
             
             let trainUnits = [];
             
-            if (typeInfo.is_double) {
+            if (typeInfo && typeInfo.is_double) {
                 trainUnits = [
                     {
                         startIdx: 0,
@@ -585,16 +866,17 @@
                     }
                 ];
             } else {
+                const vehicleCount = typeInfo ? typeInfo.vehicle_count : crowd.length;
                 trainUnits = [
                     {
                         startIdx: 0,
-                        endIdx: typeInfo.vehicle_count - 1,
+                        endIdx: vehicleCount - 1,
                         isFirst: true
                     }
                 ];
             }
             
-            // Rendu состава без сепаратора
+            // Rendu des unités
             trainUnits.forEach((unit, unitIndex) => {
                 const unitContainer = document.createElement('div');
                 unitContainer.className = 'train-unit';
@@ -603,7 +885,7 @@
                 wagonsContainer.style.display = 'flex';
                 wagonsContainer.style.alignItems = 'center';
                 
-                // Рендерим вагоны
+                // Rendu des wagons
                 for (let i = unit.startIdx; i <= unit.endIdx && i < crowd.length; i++) {
                     const wagonImg = document.createElement('img');
                     wagonImg.className = 'train-item';
@@ -663,7 +945,7 @@
                 trainContainer.appendChild(unitContainer);
                 
                 // Ajouter un badge de composition
-                if (typeInfo.is_double) {
+                if (typeInfo && typeInfo.is_double) {
                     const badge = document.createElement('div');
                     badge.className = 'composition-badge';
                     const wagonCount = Math.min(unit.endIdx - unit.startIdx + 1, crowd.length - unit.startIdx);
@@ -673,7 +955,7 @@
             });
             
             // Ajouter un badge pour le nombre total de wagons
-            if (!typeInfo.is_double) {
+            if (!typeInfo || !typeInfo.is_double) {
                 const totalBadge = document.createElement('div');
                 totalBadge.className = 'composition-badge';
                 totalBadge.textContent = `${crowd.length} wagons`;
@@ -681,53 +963,124 @@
             }
         }
         
+        // Charger les lignes disponibles pour un arrêt
+        async function loadRoutesForStop() {
+            const stopId = stopIdInput.value.trim();
+            
+            if (!stopId) {
+                showError('Veuillez entrer un ID d\'arrêt');
+                return;
+            }
+            
+            try {
+                showLoading();
+                currentDepartures = await loadStopDepartures(stopId);
+                const routes = extractUniqueRoutes(currentDepartures);
+                
+                if (routes.length === 0) {
+                    showError('Aucun départ trouvé pour cet arrêt. Vérifiez l\'ID ou essayez un autre arrêt.');
+                    return;
+                }
+                
+                populateRouteSelect(routes);
+                currentStopId = stopId;
+                
+            } catch (error) {
+                showError(`Erreur: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Charger le prochain train pour la ligne sélectionnée
+        async function loadNextTrain() {
+            const routeId = routeSelect.value;
+            
+            if (!routeId) {
+                showError('Veuillez sélectionner une ligne');
+                return;
+            }
+            
+            if (currentDepartures.length === 0) {
+                showError('Aucun départ disponible. Veuillez d\'abord charger les départs pour cet arrêt.');
+                return;
+            }
+            
+            const nextDeparture = findNextDeparture(currentDepartures, routeId);
+            
+            if (!nextDeparture) {
+                showError('Aucun train à venir pour cette ligne. Essayez une autre ligne ou revenez plus tard.');
+                return;
+            }
+            
+            try {
+                currentTripData = await loadTripData(nextDeparture.trip_id);
+                displayTrainData(currentTripData, nextDeparture);
+                currentRouteId = routeId;
+                
+            } catch (error) {
+                showError(`Erreur lors du chargement du train: ${error.message}`);
+            }
+        }
+        
         function init() {
-            tripIdInput = document.getElementById('tripIdInput');
+            stopIdInput = document.getElementById('stopIdInput');
+            routeSelect = document.getElementById('routeSelect');
             loadBtn = document.getElementById('loadBtn');
             loadingEl = document.getElementById('loading');
             errorEl = document.getElementById('error');
             trainInfoEl = document.getElementById('trainInfo');
             trainDisplayEl = document.getElementById('trainDisplay');
             refreshBtn = document.getElementById('refreshBtn');
+            nextStopsEl = document.getElementById('nextStops');
             
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlTripId = urlParams.get('trip');
-            
-            if (urlTripId) {
-                tripIdInput.value = urlTripId;
-                loadTrainData(urlTripId);
-            }
-            
-            loadBtn.addEventListener('click', () => {
-                const tripId = tripIdInput.value.trim();
-                if (tripId) {
-                    loadTrainData(tripId);
-                    const newUrl = window.location.pathname + '?trip=' + encodeURIComponent(tripId);
-                    window.history.pushState({}, '', newUrl);
-                } else {
-                    showError('Veuillez entrer un ID de trajet');
-                }
-            });
-            
-            tripIdInput.addEventListener('keypress', (e) => {
+            // Événement pour charger les lignes lorsqu'on entre un arrêt
+            stopIdInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    loadBtn.click();
+                    loadRoutesForStop();
                 }
             });
             
+            // Événement pour le bouton de chargement des lignes
+            const loadRoutesBtn = document.createElement('button');
+            loadRoutesBtn.id = 'loadRoutesBtn';
+            loadRoutesBtn.textContent = 'Charger les lignes';
+            loadRoutesBtn.style.cssText = `
+                padding: 15px 20px;
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-top: 10px;
+            `;
+            loadRoutesBtn.onclick = loadRoutesForStop;
+            loadRoutesBtn.onmouseover = () => {
+                loadRoutesBtn.style.transform = 'translateY(-2px)';
+                loadRoutesBtn.style.boxShadow = '0 10px 20px rgba(59, 130, 246, 0.3)';
+            };
+            loadRoutesBtn.onmouseout = () => {
+                loadRoutesBtn.style.transform = 'none';
+                loadRoutesBtn.style.boxShadow = 'none';
+            };
+            
+            stopIdInput.parentNode.appendChild(loadRoutesBtn);
+            
+            // Événement pour le bouton de chargement du train
+            loadBtn.addEventListener('click', loadNextTrain);
+            
+            // Événement pour le rafraîchissement
             refreshBtn.addEventListener('click', () => {
-                const tripId = tripIdInput.value.trim() || urlTripId;
-                if (tripId) {
-                    loadTrainData(tripId);
-                }
-            });
-            
-            window.addEventListener('popstate', () => {
-                const params = new URLSearchParams(window.location.search);
-                const tripId = params.get('trip');
-                if (tripId) {
-                    tripIdInput.value = tripId;
-                    loadTrainData(tripId);
+                if (currentStopId && currentRouteId) {
+                    // Recharger les départs et mettre à jour l'affichage
+                    loadRoutesForStop().then(() => {
+                        if (routeSelect.value === currentRouteId) {
+                            loadNextTrain();
+                        }
+                    });
                 }
             });
             
