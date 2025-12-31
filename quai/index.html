@@ -153,13 +153,15 @@
         .stop-column {
             flex: 1;
             position: relative;
+            min-height: 100%; /* Добавил для корректного отображения линии */
         }
         
-        /* Вертикальная соединительная линия - СТИЛЬ */
+        /* Вертикальная соединительная линия - ИСПРАВЛЕННЫЙ СТИЛЬ */
         .stop-column::after {
             content: '';
             position: absolute;
             top: 0;
+            bottom: 50px; /* ВЕРНУЛИ эту строку */
             left: 9px;
             width: 17px;
             background: #1700ff94;
@@ -170,6 +172,7 @@
         .stop-column:nth-child(2)::after {
             top: 15px;
             left: 9.5px;
+            bottom: 50px; /* Добавил для второй колонки */
         }
         
         .stop-item {
@@ -823,27 +826,6 @@
             }
         }
         
-        // Функция для настройки высоты линии в зависимости от количества остановок
-        function adjustLineHeight(column, stopCount) {
-            if (!column) return;
-            
-            const line = column;
-            const lineStyle = window.getComputedStyle(line, '::after');
-            
-            // Вычисляем высоту, которую должна занимать линия
-            // Каждая остановка имеет примерную высоту 40px (min-height 40px + отступы)
-            // Линия должна заканчиваться на середине последней точки
-            const lineHeight = stopCount * 40 - 20; // -20px чтобы закончиться на середине последней точки
-            
-            // Применяем высоту через инлайн-стиль
-            column.style.setProperty('--line-height', lineHeight + 'px');
-            
-            // Для второй колонки учитываем смещение 15px сверху
-            if (column.classList.contains('stop-column') && column === document.querySelector('.stop-column:nth-child(2)')) {
-                column.style.setProperty('--line-height', (lineHeight - 15) + 'px');
-            }
-        }
-        
         // Отобразить следующие остановки в двух колонках
         function displayNextStops(tripData, currentStopId) {
             const stopsColumns = document.getElementById('stopsColumns');
@@ -886,7 +868,6 @@
             column2.className = 'stop-column';
             
             // Распределить остановки по колонкам ВЕРТИКАЛЬНО
-            // Например: 1,2,3 в первой колонке, 4,5,6 во второй
             const middleIndex = Math.ceil(nextStops.length / 2);
             
             // Первая колонка: первая половина остановок
@@ -905,12 +886,6 @@
             
             stopsColumns.appendChild(column1);
             stopsColumns.appendChild(column2);
-            
-            // Настроить высоту линий после добавления элементов в DOM
-            setTimeout(() => {
-                adjustLineHeight(column1, middleIndex);
-                adjustLineHeight(column2, nextStops.length - middleIndex);
-            }, 0);
         }
         
         // Функция создания элемента остановки
