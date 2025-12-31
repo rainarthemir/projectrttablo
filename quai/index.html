@@ -19,11 +19,10 @@
         }
         
         .container {
-            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
             background: #002A5C;
             min-height: 100vh;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
         }
         
         .header {
@@ -98,33 +97,33 @@
         
         .main-content {
             display: flex;
-            min-height: 500px;
+            min-height: calc(100vh - 150px);
         }
         
-        /* ЛЕВАЯ ПОЛОВИНА - 2 КОЛОНКИ ОСТАНОВОК */
+        /* ЛЕВАЯ ПОЛОВИНА ЭКРАНА - 2 КОЛОНКИ ОСТАНОВОК */
         .stops-section {
-            flex: 1;
-            padding: 30px 20px;
+            width: 50%;
+            padding: 25px;
             background: #003A7A;
-            border-right: 1px solid #0051A9;
-            max-width: 50%;
+            border-right: 2px solid #0051A9;
             overflow-y: auto;
         }
         
         .stops-title {
             font-size: 1.3rem;
             color: #FFD100;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-transform: uppercase;
             letter-spacing: 1px;
             text-align: center;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #FFD100;
         }
         
         .stops-columns {
             display: flex;
-            gap: 20px;
+            gap: 30px;
+            height: calc(100% - 50px);
         }
         
         .stop-column {
@@ -132,12 +131,12 @@
         }
         
         .stop-item {
-            padding: 8px 5px;
-            margin-bottom: 5px;
+            padding: 5px 0;
+            margin-bottom: 2px;
             display: flex;
             align-items: center;
             position: relative;
-            min-height: 40px;
+            min-height: 32px;
         }
         
         .stop-item::before {
@@ -145,15 +144,15 @@
             position: absolute;
             left: 0;
             color: #FFD100;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
         
         .stop-name {
             font-weight: 600;
             color: white;
-            font-size: 1rem;
-            line-height: 1.3;
-            padding-left: 15px;
+            font-size: 0.95rem;
+            line-height: 1.2;
+            padding-left: 12px;
         }
         
         .stop-item.current .stop-name {
@@ -163,22 +162,21 @@
         
         .stop-item.current::before {
             color: #FFD100;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
         }
         
-        /* ПРАВАЯ ПОЛОВИНА - ПОЕЗД */
+        /* ПРАВАЯ ПОЛОВИНА ЭКРАНА - ПОЕЗД */
         .train-section {
-            flex: 1;
-            padding: 30px;
+            width: 50%;
+            padding: 25px;
             display: flex;
             flex-direction: column;
-            max-width: 50%;
         }
         
         .train-title {
             font-size: 1.3rem;
             color: #FFD100;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             text-transform: uppercase;
             letter-spacing: 1px;
             text-align: center;
@@ -189,8 +187,8 @@
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin-bottom: 25px;
             min-height: 120px;
         }
         
@@ -329,14 +327,14 @@
             }
             
             .stops-section {
-                max-width: 100%;
-                max-height: 300px;
+                width: 100%;
+                max-height: 250px;
                 border-right: none;
-                border-bottom: 1px solid #0051A9;
+                border-bottom: 2px solid #0051A9;
             }
             
             .train-section {
-                max-width: 100%;
+                width: 100%;
             }
             
             .train-item {
@@ -360,7 +358,7 @@
             
             .stops-columns {
                 flex-direction: column;
-                gap: 10px;
+                gap: 15px;
             }
             
             .train-item {
@@ -413,7 +411,7 @@
         <div id="error" class="error" style="display: none;"></div>
         
         <div id="mainContent" class="main-content" style="display: none;">
-            <!-- Левая половина - 2 колонки остановок -->
+            <!-- Левая половина экрана - 2 колонки остановок -->
             <div class="stops-section">
                 <div class="stops-title">Arrêts suivants</div>
                 <div class="stops-columns" id="stopsColumns">
@@ -421,7 +419,7 @@
                 </div>
             </div>
             
-            <!-- Правая половина - поезд -->
+            <!-- Правая половина экрана - поезд -->
             <div class="train-section">
                 <div class="train-title">Composition du train</div>
                 <div id="trainContainer" class="train-container">
@@ -774,7 +772,7 @@
             const nextStops = sortedStops.slice(currentIndex);
             
             // Ограничить количество отображаемых остановок
-            const maxStops = 12;
+            const maxStops = 14;
             const displayStops = nextStops.slice(0, maxStops);
             
             // Создать две колонки
@@ -816,10 +814,10 @@
             if (nextStops.length > maxStops) {
                 const moreStops = document.createElement('div');
                 moreStops.className = 'stop-item';
-                moreStops.style.gridColumn = '1 / span 2';
                 moreStops.style.textAlign = 'center';
                 moreStops.style.justifyContent = 'center';
-                moreStops.style.paddingTop = '15px';
+                moreStops.style.paddingTop = '10px';
+                moreStops.style.marginTop = '10px';
                 moreStops.style.borderTop = '1px dashed #0051A9';
                 
                 const moreText = document.createElement('div');
