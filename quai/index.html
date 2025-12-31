@@ -101,20 +101,20 @@
             min-height: 500px;
         }
         
-        /* ВЕРТИКАЛЬНЫЙ СПИСОК СТАНЦИЙ СЛЕВА */
+        /* ЛЕВАЯ ПОЛОВИНА - 2 КОЛОНКИ ОСТАНОВОК */
         .stops-section {
             flex: 1;
             padding: 30px 20px;
             background: #003A7A;
             border-right: 1px solid #0051A9;
-            max-width: 300px;
+            max-width: 50%;
             overflow-y: auto;
         }
         
         .stops-title {
             font-size: 1.3rem;
             color: #FFD100;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
             text-align: center;
@@ -122,83 +122,57 @@
             border-bottom: 2px solid #FFD100;
         }
         
-        .stops-list {
+        .stops-columns {
             display: flex;
-            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .stop-column {
+            flex: 1;
         }
         
         .stop-item {
+            padding: 8px 5px;
+            margin-bottom: 5px;
             display: flex;
             align-items: center;
             position: relative;
-            padding: 15px 10px 15px 40px;
-            margin-bottom: 5px;
-            min-height: 60px;
+            min-height: 40px;
         }
         
         .stop-item::before {
-            content: '';
+            content: '•';
             position: absolute;
-            left: 20px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: #FFD100;
-        }
-        
-        .stop-item:first-child::before {
-            top: 50%;
-        }
-        
-        .stop-item:last-child::before {
-            bottom: 50%;
-        }
-        
-        .stop-dot {
-            position: absolute;
-            left: 18px;
-            width: 8px;
-            height: 8px;
-            background: #FFD100;
-            border-radius: 50%;
-            z-index: 2;
-            border: 3px solid #003A7A;
+            left: 0;
+            color: #FFD100;
+            font-size: 1.2rem;
         }
         
         .stop-name {
             font-weight: 600;
             color: white;
             font-size: 1rem;
-            line-height: 1.4;
-            padding: 8px 12px;
-            background: #002A5C;
-            border-radius: 4px;
-            border: 1px solid #0051A9;
-            flex: 1;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            line-height: 1.3;
+            padding-left: 15px;
         }
         
         .stop-item.current .stop-name {
-            background: #FFD100;
-            color: #001E50;
+            color: #FFD100;
             font-weight: 700;
-            border-color: #FFD100;
         }
         
-        .stop-item.current .stop-dot {
-            background: #001E50;
-            border-color: #FFD100;
-            width: 12px;
-            height: 12px;
-            left: 16px;
+        .stop-item.current::before {
+            color: #FFD100;
+            font-size: 1.4rem;
         }
         
-        /* СЕКЦИЯ ПОЕЗДА СПРАВА */
+        /* ПРАВАЯ ПОЛОВИНА - ПОЕЗД */
         .train-section {
-            flex: 2;
+            flex: 1;
             padding: 30px;
             display: flex;
             flex-direction: column;
+            max-width: 50%;
         }
         
         .train-title {
@@ -356,52 +330,13 @@
             
             .stops-section {
                 max-width: 100%;
+                max-height: 300px;
                 border-right: none;
                 border-bottom: 1px solid #0051A9;
-                max-height: 250px;
             }
             
-            .stops-list {
-                flex-direction: row;
-                overflow-x: auto;
-                padding-bottom: 10px;
-            }
-            
-            .stop-item {
-                flex-direction: column;
-                padding: 10px 15px;
-                min-width: 160px;
-                margin-bottom: 0;
-                margin-right: 10px;
-            }
-            
-            .stop-item::before {
-                left: 50%;
-                top: 0;
-                bottom: 0;
-                width: 2px;
-                height: 100%;
-                transform: translateX(-50%);
-            }
-            
-            .stop-dot {
-                left: 50%;
-                top: 0;
-                transform: translateX(-50%);
-            }
-            
-            .stop-name {
-                margin-top: 20px;
-                text-align: center;
-                min-height: 60px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .stop-item.current .stop-dot {
-                left: 50%;
-                transform: translateX(-50%);
+            .train-section {
+                max-width: 100%;
             }
             
             .train-item {
@@ -421,6 +356,11 @@
                 flex-direction: column;
                 gap: 15px;
                 text-align: center;
+            }
+            
+            .stops-columns {
+                flex-direction: column;
+                gap: 10px;
             }
             
             .train-item {
@@ -473,15 +413,15 @@
         <div id="error" class="error" style="display: none;"></div>
         
         <div id="mainContent" class="main-content" style="display: none;">
-            <!-- Вертикальный список станций слева -->
+            <!-- Левая половина - 2 колонки остановок -->
             <div class="stops-section">
                 <div class="stops-title">Arrêts suivants</div>
-                <div class="stops-list" id="stopsList">
-                    <!-- Станции будут отрисованы здесь -->
+                <div class="stops-columns" id="stopsColumns">
+                    <!-- Две колонки будут созданы динамически -->
                 </div>
             </div>
             
-            <!-- Секция с поездом справа -->
+            <!-- Правая половина - поезд -->
             <div class="train-section">
                 <div class="train-title">Composition du train</div>
                 <div id="trainContainer" class="train-container">
@@ -805,13 +745,13 @@
             }
         }
         
-        // Отобразить следующие остановки в вертикальном списке
+        // Отобразить следующие остановки в двух колонках
         function displayNextStops(tripData, currentStopId) {
-            const stopsList = document.getElementById('stopsList');
-            stopsList.innerHTML = '';
+            const stopsColumns = document.getElementById('stopsColumns');
+            stopsColumns.innerHTML = '';
             
             if (!tripData.stops || !Array.isArray(tripData.stops)) {
-                stopsList.innerHTML = '<div style="color: #a0c8ff; text-align: center; padding: 20px;">Aucun arrêt disponible</div>';
+                stopsColumns.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%; padding: 20px;">Aucun arrêt disponible</div>';
                 return;
             }
             
@@ -826,17 +766,25 @@
             const currentIndex = sortedStops.findIndex(stop => stop.stop_id === currentStopId);
             
             if (currentIndex === -1 || currentIndex >= sortedStops.length - 1) {
-                stopsList.innerHTML = '<div style="color: #a0c8ff; text-align: center; padding: 20px;">Aucun arrêt suivant disponible</div>';
+                stopsColumns.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%; padding: 20px;">Aucun arrêt suivant disponible</div>';
                 return;
             }
             
             // Отобразить следующие остановки
             const nextStops = sortedStops.slice(currentIndex);
             
-            // Ограничить количество отображаемых остановок для лучшего вида
-            const maxStops = 7; // Уменьшил для лучшего отображения
+            // Ограничить количество отображаемых остановок
+            const maxStops = 12;
             const displayStops = nextStops.slice(0, maxStops);
             
+            // Создать две колонки
+            const column1 = document.createElement('div');
+            column1.className = 'stop-column';
+            
+            const column2 = document.createElement('div');
+            column2.className = 'stop-column';
+            
+            // Распределить остановки по колонкам
             displayStops.forEach((stop, index) => {
                 const stopItem = document.createElement('div');
                 stopItem.className = 'stop-item';
@@ -846,42 +794,49 @@
                     stopItem.classList.add('current');
                 }
                 
-                // Точка остановки
-                const stopDot = document.createElement('div');
-                stopDot.className = 'stop-dot';
-                
                 // Название остановки
                 const stopName = document.createElement('div');
                 stopName.className = 'stop-name';
                 stopName.textContent = stop.stop_name || `Arrêt ${stop.stop_id}`;
                 
-                stopItem.appendChild(stopDot);
                 stopItem.appendChild(stopName);
-                stopsList.appendChild(stopItem);
+                
+                // Распределить по колонкам
+                if (index % 2 === 0) {
+                    column1.appendChild(stopItem);
+                } else {
+                    column2.appendChild(stopItem);
+                }
             });
             
-            if (displayStops.length === 0) {
-                stopsList.innerHTML = '<div style="color: #a0c8ff; text-align: center; padding: 20px;">Terminus</div>';
-            }
+            stopsColumns.appendChild(column1);
+            stopsColumns.appendChild(column2);
             
             // Добавить подсказку, если есть еще остановки
             if (nextStops.length > maxStops) {
                 const moreStops = document.createElement('div');
                 moreStops.className = 'stop-item';
+                moreStops.style.gridColumn = '1 / span 2';
+                moreStops.style.textAlign = 'center';
+                moreStops.style.justifyContent = 'center';
+                moreStops.style.paddingTop = '15px';
+                moreStops.style.borderTop = '1px dashed #0051A9';
                 
-                const stopDot = document.createElement('div');
-                stopDot.className = 'stop-dot';
-                stopDot.style.background = '#8fa3c2';
+                const moreText = document.createElement('div');
+                moreText.className = 'stop-name';
+                moreText.textContent = `+${nextStops.length - maxStops} arrêts`;
+                moreText.style.fontStyle = 'italic';
+                moreText.style.color = '#a0c8ff';
+                moreText.style.paddingLeft = '0';
                 
-                const stopName = document.createElement('div');
-                stopName.className = 'stop-name';
-                stopName.textContent = `+${nextStops.length - maxStops} arrêts`;
-                stopName.style.fontStyle = 'italic';
-                stopName.style.color = '#a0c8ff';
+                moreStops.appendChild(moreText);
                 
-                moreStops.appendChild(stopDot);
-                moreStops.appendChild(stopName);
-                stopsList.appendChild(moreStops);
+                // Добавить в конец первой колонки
+                column1.appendChild(moreStops);
+            }
+            
+            if (displayStops.length === 0) {
+                stopsColumns.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%; padding: 20px;">Terminus</div>';
             }
         }
         
