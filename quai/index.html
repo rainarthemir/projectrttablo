@@ -98,14 +98,17 @@
         
         .main-content {
             display: flex;
-            flex-direction: column;
             min-height: 500px;
         }
         
-        /* Стиль для списка станций как в реальном табло */
+        /* ВЕРТИКАЛЬНЫЙ СПИСОК СТАНЦИЙ СЛЕВА */
         .stops-section {
-            padding: 30px 30px 10px 30px;
+            flex: 1;
+            padding: 30px 20px;
             background: #003A7A;
+            border-right: 1px solid #0051A9;
+            max-width: 300px;
+            overflow-y: auto;
         }
         
         .stops-title {
@@ -115,94 +118,87 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #FFD100;
         }
         
-        .stops-timeline {
+        .stops-list {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            padding: 20px 0;
-            min-height: 80px;
-        }
-        
-        .stops-timeline::-webkit-scrollbar {
-            height: 6px;
-        }
-        
-        .stops-timeline::-webkit-scrollbar-track {
-            background: #002A5C;
-            border-radius: 3px;
-        }
-        
-        .stops-timeline::-webkit-scrollbar-thumb {
-            background: #FFD100;
-            border-radius: 3px;
+            flex-direction: column;
         }
         
         .stop-item {
             display: flex;
-            flex-direction: column;
             align-items: center;
             position: relative;
-            min-width: 120px;
-            margin: 0 15px;
+            padding: 15px 10px 15px 40px;
+            margin-bottom: 5px;
+            min-height: 60px;
+        }
+        
+        .stop-item::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #FFD100;
+        }
+        
+        .stop-item:first-child::before {
+            top: 50%;
+        }
+        
+        .stop-item:last-child::before {
+            bottom: 50%;
+        }
+        
+        .stop-dot {
+            position: absolute;
+            left: 18px;
+            width: 8px;
+            height: 8px;
+            background: #FFD100;
+            border-radius: 50%;
+            z-index: 2;
+            border: 3px solid #003A7A;
         }
         
         .stop-name {
             font-weight: 600;
             color: white;
             font-size: 1rem;
-            text-align: center;
-            margin-bottom: 10px;
-            padding: 5px 10px;
+            line-height: 1.4;
+            padding: 8px 12px;
             background: #002A5C;
             border-radius: 4px;
             border: 1px solid #0051A9;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .stop-dot {
-            width: 16px;
-            height: 16px;
-            background: #FFD100;
-            border-radius: 50%;
-            position: relative;
-            z-index: 2;
-            border: 3px solid #003A7A;
-        }
-        
-        .stop-connector {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            width: 100%;
-            height: 3px;
-            background: #FFD100;
-            z-index: 1;
-            transform: translateY(-50%);
-        }
-        
-        .stop-item:first-child .stop-connector {
-            left: 50%;
-            width: 50%;
-        }
-        
-        .stop-item:last-child .stop-connector {
-            width: 50%;
-        }
-        
-        .train-section {
-            padding: 30px;
-            border-top: 1px solid #0051A9;
             flex: 1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stop-item.current .stop-name {
+            background: #FFD100;
+            color: #001E50;
+            font-weight: 700;
+            border-color: #FFD100;
+        }
+        
+        .stop-item.current .stop-dot {
+            background: #001E50;
+            border-color: #FFD100;
+            width: 12px;
+            height: 12px;
+            left: 16px;
+        }
+        
+        /* СЕКЦИЯ ПОЕЗДА СПРАВА */
+        .train-section {
+            flex: 2;
+            padding: 30px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
         }
         
         .train-title {
@@ -217,37 +213,21 @@
         .train-container {
             display: flex;
             align-items: center;
-            gap: 5px;
-            flex-wrap: nowrap;
             justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 30px;
-            overflow-x: auto;
-            padding: 10px 0;
-        }
-        
-        .train-container::-webkit-scrollbar {
-            height: 6px;
-        }
-        
-        .train-container::-webkit-scrollbar-track {
-            background: #002A5C;
-            border-radius: 3px;
-        }
-        
-        .train-container::-webkit-scrollbar-thumb {
-            background: #FFD100;
-            border-radius: 3px;
+            min-height: 120px;
         }
         
         .train-unit {
             display: flex;
             align-items: center;
-            margin: 0 5px;
         }
         
         .train-item {
-            width: 80px;
-            height: 80px;
+            width: 85px;
+            height: 85px;
             object-fit: contain;
             transition: transform 0.3s ease;
         }
@@ -259,7 +239,7 @@
         .crowd-legend {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 25px;
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid #0051A9;
@@ -269,13 +249,13 @@
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         
         .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
         }
         
         .legend-color.unknown { background: #8fa3c2; }
@@ -286,7 +266,7 @@
         .legend-text {
             color: white;
             font-weight: 500;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         
         .loading {
@@ -327,7 +307,7 @@
         .train-details {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             margin-top: 15px;
             flex-wrap: wrap;
         }
@@ -370,47 +350,67 @@
         }
         
         @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .stops-section {
+                max-width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #0051A9;
+                max-height: 250px;
+            }
+            
+            .stops-list {
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+            
             .stop-item {
-                min-width: 100px;
-                margin: 0 10px;
+                flex-direction: column;
+                padding: 10px 15px;
+                min-width: 160px;
+                margin-bottom: 0;
+                margin-right: 10px;
+            }
+            
+            .stop-item::before {
+                left: 50%;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                height: 100%;
+                transform: translateX(-50%);
+            }
+            
+            .stop-dot {
+                left: 50%;
+                top: 0;
+                transform: translateX(-50%);
             }
             
             .stop-name {
-                font-size: 0.9rem;
-                padding: 4px 8px;
-                min-height: 35px;
+                margin-top: 20px;
+                text-align: center;
+                min-height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .stop-item.current .stop-dot {
+                left: 50%;
+                transform: translateX(-50%);
             }
             
             .train-item {
-                width: 60px;
-                height: 60px;
+                width: 65px;
+                height: 65px;
             }
         }
         
-        @media (max-width: 768px) {
-            .stops-timeline {
-                justify-content: flex-start;
-            }
-            
-            .stop-item {
-                min-width: 90px;
-                margin: 0 8px;
-            }
-            
-            .stop-name {
-                font-size: 0.85rem;
-                padding: 3px 6px;
-            }
-            
-            .train-container {
-                justify-content: flex-start;
-            }
-            
-            .train-item {
-                width: 55px;
-                height: 55px;
-            }
-            
+        @media (max-width: 600px) {
             .header {
                 flex-direction: column;
                 text-align: center;
@@ -423,38 +423,20 @@
                 text-align: center;
             }
             
+            .train-item {
+                width: 55px;
+                height: 55px;
+            }
+            
             .crowd-legend {
                 gap: 15px;
             }
             
             .legend-item {
-                gap: 6px;
+                gap: 5px;
             }
             
             .legend-text {
-                font-size: 0.8rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .stop-item {
-                min-width: 80px;
-                margin: 0 5px;
-            }
-            
-            .stop-name {
-                font-size: 0.8rem;
-                padding: 2px 4px;
-                min-height: 30px;
-            }
-            
-            .train-item {
-                width: 50px;
-                height: 50px;
-            }
-            
-            .detail-badge {
-                padding: 4px 8px;
                 font-size: 0.8rem;
             }
         }
@@ -491,15 +473,15 @@
         <div id="error" class="error" style="display: none;"></div>
         
         <div id="mainContent" class="main-content" style="display: none;">
-            <!-- Секция с остановками сверху -->
+            <!-- Вертикальный список станций слева -->
             <div class="stops-section">
                 <div class="stops-title">Arrêts suivants</div>
-                <div class="stops-timeline" id="stopsTimeline">
-                    <!-- Остановки будут отрисованы здесь -->
+                <div class="stops-list" id="stopsList">
+                    <!-- Станции будут отрисованы здесь -->
                 </div>
             </div>
             
-            <!-- Секция с поездом снизу -->
+            <!-- Секция с поездом справа -->
             <div class="train-section">
                 <div class="train-title">Composition du train</div>
                 <div id="trainContainer" class="train-container">
@@ -771,8 +753,8 @@
                         console.warn(`Изображение не найдено: ${imgName}`);
                         const fallbackDiv = document.createElement('div');
                         fallbackDiv.className = 'train-item';
-                        fallbackDiv.style.width = '80px';
-                        fallbackDiv.style.height = '80px';
+                        fallbackDiv.style.width = '85px';
+                        fallbackDiv.style.height = '85px';
                         fallbackDiv.style.display = 'flex';
                         fallbackDiv.style.alignItems = 'center';
                         fallbackDiv.style.justifyContent = 'center';
@@ -823,13 +805,13 @@
             }
         }
         
-        // Отобразить следующие остановки в виде таймлайна
+        // Отобразить следующие остановки в вертикальном списке
         function displayNextStops(tripData, currentStopId) {
-            const stopsTimeline = document.getElementById('stopsTimeline');
-            stopsTimeline.innerHTML = '';
+            const stopsList = document.getElementById('stopsList');
+            stopsList.innerHTML = '';
             
             if (!tripData.stops || !Array.isArray(tripData.stops)) {
-                stopsTimeline.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%;">Aucun arrêt disponible</div>';
+                stopsList.innerHTML = '<div style="color: #a0c8ff; text-align: center; padding: 20px;">Aucun arrêt disponible</div>';
                 return;
             }
             
@@ -844,70 +826,62 @@
             const currentIndex = sortedStops.findIndex(stop => stop.stop_id === currentStopId);
             
             if (currentIndex === -1 || currentIndex >= sortedStops.length - 1) {
-                stopsTimeline.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%;">Aucun arrêt suivant disponible</div>';
+                stopsList.innerHTML = '<div style="color: #a0c8ff; text-align: center; padding: 20px;">Aucun arrêt suivant disponible</div>';
                 return;
             }
             
             // Отобразить следующие остановки
-            const nextStops = sortedStops.slice(currentIndex + 1);
+            const nextStops = sortedStops.slice(currentIndex);
             
             // Ограничить количество отображаемых остановок для лучшего вида
-            const maxStops = 8;
+            const maxStops = 7; // Уменьшил для лучшего отображения
             const displayStops = nextStops.slice(0, maxStops);
             
             displayStops.forEach((stop, index) => {
                 const stopItem = document.createElement('div');
                 stopItem.className = 'stop-item';
                 
+                // Первая остановка - текущая
+                if (index === 0) {
+                    stopItem.classList.add('current');
+                }
+                
                 // Точка остановки
                 const stopDot = document.createElement('div');
                 stopDot.className = 'stop-dot';
-                
-                // Соединительная линия
-                const stopConnector = document.createElement('div');
-                stopConnector.className = 'stop-connector';
                 
                 // Название остановки
                 const stopName = document.createElement('div');
                 stopName.className = 'stop-name';
                 stopName.textContent = stop.stop_name || `Arrêt ${stop.stop_id}`;
                 
-                stopItem.appendChild(stopName);
-                stopItem.appendChild(stopConnector);
                 stopItem.appendChild(stopDot);
-                
-                stopsTimeline.appendChild(stopItem);
+                stopItem.appendChild(stopName);
+                stopsList.appendChild(stopItem);
             });
             
             if (displayStops.length === 0) {
-                stopsTimeline.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%;">Terminus</div>';
+                stopsList.innerHTML = '<div style="color: #a0c8ff; text-align: center; padding: 20px;">Terminus</div>';
             }
             
             // Добавить подсказку, если есть еще остановки
             if (nextStops.length > maxStops) {
                 const moreStops = document.createElement('div');
                 moreStops.className = 'stop-item';
-                moreStops.style.minWidth = '80px';
                 
                 const stopDot = document.createElement('div');
                 stopDot.className = 'stop-dot';
                 stopDot.style.background = '#8fa3c2';
                 
-                const stopConnector = document.createElement('div');
-                stopConnector.className = 'stop-connector';
-                stopConnector.style.background = '#8fa3c2';
-                
                 const stopName = document.createElement('div');
                 stopName.className = 'stop-name';
-                stopName.textContent = `+${nextStops.length - maxStops}`;
+                stopName.textContent = `+${nextStops.length - maxStops} arrêts`;
                 stopName.style.fontStyle = 'italic';
                 stopName.style.color = '#a0c8ff';
                 
-                moreStops.appendChild(stopName);
-                moreStops.appendChild(stopConnector);
                 moreStops.appendChild(stopDot);
-                
-                stopsTimeline.appendChild(moreStops);
+                moreStops.appendChild(stopName);
+                stopsList.appendChild(moreStops);
             }
         }
         
