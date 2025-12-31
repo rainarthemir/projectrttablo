@@ -166,14 +166,7 @@
         .train-unit {
             display: flex;
             align-items: center;
-            margin: 0 10px;
-        }
-        
-        .train-separator {
-            width: 20px;
-            height: 2px;
-            background: #cbd5e1;
-            margin: 0 5px;
+            margin: 0 5px; /* Уменьшено с 10px до 5px */
         }
         
         .train-unit-label {
@@ -308,6 +301,10 @@
             .train-item {
                 width: 60px;
                 height: 60px;
+            }
+            
+            .train-unit {
+                margin: 0 2px; /* Еще меньше на мобильных */
             }
             
             .info-grid {
@@ -575,7 +572,6 @@
             let trainUnits = [];
             
             if (typeInfo.is_double) {
-                // Supprimé les labels "Composition 1/2"
                 trainUnits = [
                     {
                         startIdx: 0,
@@ -598,7 +594,7 @@
                 ];
             }
             
-            // Rendu des unités sans étiquettes
+            // Rendu состава без сепаратора
             trainUnits.forEach((unit, unitIndex) => {
                 const unitContainer = document.createElement('div');
                 unitContainer.className = 'train-unit';
@@ -607,7 +603,7 @@
                 wagonsContainer.style.display = 'flex';
                 wagonsContainer.style.alignItems = 'center';
                 
-                // Rendu des wagons
+                // Рендерим вагоны
                 for (let i = unit.startIdx; i <= unit.endIdx && i < crowd.length; i++) {
                     const wagonImg = document.createElement('img');
                     wagonImg.className = 'train-item';
@@ -666,20 +662,13 @@
                 unitContainer.appendChild(wagonsContainer);
                 trainContainer.appendChild(unitContainer);
                 
-                // Ajouter un badge de composition (optionnel)
+                // Ajouter un badge de composition
                 if (typeInfo.is_double) {
                     const badge = document.createElement('div');
                     badge.className = 'composition-badge';
                     const wagonCount = Math.min(unit.endIdx - unit.startIdx + 1, crowd.length - unit.startIdx);
                     badge.textContent = `${wagonCount} wagons`;
                     compositionInfo.appendChild(badge);
-                }
-                
-                // Séparateur entre les unités (uniquement pour les compositions doubles)
-                if (typeInfo.is_double && unitIndex < trainUnits.length - 1) {
-                    const separator = document.createElement('div');
-                    separator.className = 'train-separator';
-                    trainContainer.appendChild(separator);
                 }
             });
             
