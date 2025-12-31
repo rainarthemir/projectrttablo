@@ -106,7 +106,9 @@
             padding: 25px;
             background: #003A7A;
             border-right: 2px solid #0051A9;
-            overflow-y: auto;
+            overflow: hidden; /* Изменил на hidden, чтобы не было двойной прокрутки */
+            display: flex;
+            flex-direction: column;
         }
         
         .stops-title {
@@ -118,12 +120,34 @@
             text-align: center;
             padding-bottom: 8px;
             border-bottom: 2px solid #FFD100;
+            flex-shrink: 0;
+        }
+        
+        .stops-columns-container {
+            flex: 1;
+            overflow-y: auto; /* Автоматическая прокрутка */
+            overflow-x: hidden;
+            padding-right: 5px;
+        }
+        
+        .stops-columns-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .stops-columns-container::-webkit-scrollbar-track {
+            background: #002A5C;
+            border-radius: 4px;
+        }
+        
+        .stops-columns-container::-webkit-scrollbar-thumb {
+            background: #FFD100;
+            border-radius: 4px;
         }
         
         .stops-columns {
             display: flex;
-            gap: 40px; /* Увеличил расстояние между колонками */
-            height: calc(100% - 50px);
+            gap: 40px;
+            min-height: 100%;
         }
         
         .stop-column {
@@ -131,19 +155,18 @@
             position: relative;
         }
         
-        /* Вертикальная соединительная линия - ВАШ СТИЛЬ */
+        /* Вертикальная соединительная линия - СТИЛЬ */
         .stop-column::after {
             content: '';
             position: absolute;
             top: 0;
-            bottom: 50px;
             left: 9px;
             width: 17px;
             background: #1700ff94;
             z-index: 1;
         }
         
-        /* Для второй колонки сместим линию - ВАШ СТИЛЬ */
+        /* Для второй колонки сместим линию */
         .stop-column:nth-child(2)::after {
             top: 15px;
             left: 9.5px;
@@ -151,12 +174,12 @@
         
         .stop-item {
             position: relative;
-            padding: 4px 0; /* Уменьшил вертикальные отступы */
+            padding: 4px 0;
             margin-bottom: 3px;
-            min-height: 30px;
+            min-height: 40px; /* Увеличил высоту для лучшего вида */
         }
         
-        /* Точки остановок - ВАШ СТИЛЬ */
+        /* Точки остановок */
         .stop-dot {
             position: absolute;
             left: 8px;
@@ -176,25 +199,9 @@
             font-size: 1.5rem;
             line-height: 1.3;
             padding-left: 90px;
-            min-height: 0px;
+            min-height: 40px;
             display: flex;
             align-items: center;
-        }
-        
-        /* Первая остановка (следующая) выделена */
-        .stop-item.first-next .stop-dot {
-            width: 24px;
-            height: 24px;
-            left: 6px;
-            background: #FFD100;
-            border: 3px solid #003A7A;
-            box-shadow: 0 0 0 2px #FFD100;
-        }
-        
-        .stop-item.first-next .stop-name {
-            color: #FFD100;
-            font-weight: 700;
-            font-size: 1.6rem;
         }
         
         /* ПРАВАЯ ПОЛОВИНА ЭКРАНА - ПОЕЗД */
@@ -388,16 +395,7 @@
             .stop-name {
                 padding-left: 60px;
                 font-size: 1.3rem;
-            }
-            
-            .stop-item.first-next .stop-dot {
-                width: 22px;
-                height: 22px;
-                left: 10px;
-            }
-            
-            .stop-item.first-next .stop-name {
-                font-size: 1.4rem;
+                min-height: 35px;
             }
         }
         
@@ -438,16 +436,7 @@
             .stop-name {
                 padding-left: 65px;
                 font-size: 1.2rem;
-            }
-            
-            .stop-item.first-next .stop-dot {
-                width: 22px;
-                height: 22px;
-                left: 15px;
-            }
-            
-            .stop-item.first-next .stop-name {
-                font-size: 1.3rem;
+                min-height: 30px;
             }
             
             .train-item {
@@ -503,8 +492,10 @@
             <!-- Левая половина экрана - 2 колонки остановок -->
             <div class="stops-section">
                 <div class="stops-title">Arrêts suivants</div>
-                <div class="stops-columns" id="stopsColumns">
-                    <!-- Две колонки будут созданы динамически -->
+                <div class="stops-columns-container" id="stopsColumnsContainer">
+                    <div class="stops-columns" id="stopsColumns">
+                        <!-- Две колонки будут созданы динамически -->
+                    </div>
                 </div>
             </div>
             
@@ -832,7 +823,28 @@
             }
         }
         
-        // Отобразить следующие остановки в двух колонках (правильное распределение)
+        // Функция для настройки высоты линии в зависимости от количества остановок
+        function adjustLineHeight(column, stopCount) {
+            if (!column) return;
+            
+            const line = column;
+            const lineStyle = window.getComputedStyle(line, '::after');
+            
+            // Вычисляем высоту, которую должна занимать линия
+            // Каждая остановка имеет примерную высоту 40px (min-height 40px + отступы)
+            // Линия должна заканчиваться на середине последней точки
+            const lineHeight = stopCount * 40 - 20; // -20px чтобы закончиться на середине последней точки
+            
+            // Применяем высоту через инлайн-стиль
+            column.style.setProperty('--line-height', lineHeight + 'px');
+            
+            // Для второй колонки учитываем смещение 15px сверху
+            if (column.classList.contains('stop-column') && column === document.querySelector('.stop-column:nth-child(2)')) {
+                column.style.setProperty('--line-height', (lineHeight - 15) + 'px');
+            }
+        }
+        
+        // Отобразить следующие остановки в двух колонках
         function displayNextStops(tripData, currentStopId) {
             const stopsColumns = document.getElementById('stopsColumns');
             stopsColumns.innerHTML = '';
@@ -860,11 +872,8 @@
             // Отобразить следующие остановки, начиная со СЛЕДУЮЩЕЙ после текущей
             const nextStops = sortedStops.slice(currentIndex + 1);
             
-            // Ограничить количество отображаемых остановок
-            const maxStops = 20; // 10 в каждой колонке
-            const displayStops = nextStops.slice(0, maxStops);
-            
-            if (displayStops.length === 0) {
+            // Если нет следующих остановок
+            if (nextStops.length === 0) {
                 stopsColumns.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%; padding: 20px;">Terminus</div>';
                 return;
             }
@@ -878,51 +887,34 @@
             
             // Распределить остановки по колонкам ВЕРТИКАЛЬНО
             // Например: 1,2,3 в первой колонке, 4,5,6 во второй
-            const middleIndex = Math.ceil(displayStops.length / 2);
+            const middleIndex = Math.ceil(nextStops.length / 2);
             
-            // Первая колонка: первые половина остановок
+            // Первая колонка: первая половина остановок
             for (let i = 0; i < middleIndex; i++) {
-                const stop = displayStops[i];
-                const stopItem = createStopItem(stop, i === 0); // Первая остановка выделена
+                const stop = nextStops[i];
+                const stopItem = createStopItem(stop);
                 column1.appendChild(stopItem);
             }
             
             // Вторая колонка: вторая половина остановок
-            for (let i = middleIndex; i < displayStops.length; i++) {
-                const stop = displayStops[i];
-                const stopItem = createStopItem(stop, false);
+            for (let i = middleIndex; i < nextStops.length; i++) {
+                const stop = nextStops[i];
+                const stopItem = createStopItem(stop);
                 column2.appendChild(stopItem);
             }
             
             stopsColumns.appendChild(column1);
             stopsColumns.appendChild(column2);
             
-            // Добавить подсказку, если есть еще остановки
-            if (nextStops.length > maxStops) {
-                const moreStops = document.createElement('div');
-                moreStops.className = 'stop-item';
-                moreStops.style.textAlign = 'center';
-                moreStops.style.justifyContent = 'center';
-                moreStops.style.paddingTop = '10px';
-                moreStops.style.marginTop = '10px';
-                moreStops.style.borderTop = '1px dashed #0051A9';
-                
-                const moreText = document.createElement('div');
-                moreText.className = 'stop-name';
-                moreText.textContent = `+${nextStops.length - maxStops} arrêts`;
-                moreText.style.fontStyle = 'italic';
-                moreText.style.color = '#a0c8ff';
-                moreText.style.paddingLeft = '90px';
-                
-                moreStops.appendChild(moreText);
-                
-                // Добавить в конец первой колонки
-                column1.appendChild(moreStops);
-            }
+            // Настроить высоту линий после добавления элементов в DOM
+            setTimeout(() => {
+                adjustLineHeight(column1, middleIndex);
+                adjustLineHeight(column2, nextStops.length - middleIndex);
+            }, 0);
         }
         
         // Функция создания элемента остановки
-        function createStopItem(stop, isFirstNext) {
+        function createStopItem(stop) {
             const stopItem = document.createElement('div');
             stopItem.className = 'stop-item';
             
@@ -934,10 +926,6 @@
             const stopName = document.createElement('div');
             stopName.className = 'stop-name';
             stopName.textContent = stop.stop_name || `Arrêt ${stop.stop_id}`;
-            
-            if (isFirstNext) {
-                stopItem.classList.add('first-next');
-            }
             
             stopItem.appendChild(stopDot);
             stopItem.appendChild(stopName);
