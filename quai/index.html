@@ -128,6 +128,7 @@
             overflow-y: auto; /* Автоматическая прокрутка */
             overflow-x: hidden;
             padding-right: 5px;
+            position: relative;
         }
         
         .stops-columns-container::-webkit-scrollbar {
@@ -205,6 +206,23 @@
             min-height: 40px;
             display: flex;
             align-items: center;
+        }
+        
+        /* Индикатор страницы */
+        .page-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding-top: 10px;
+            border-top: 1px dashed #0051A9;
+            background: rgba(0, 42, 92, 0.8);
+            z-index: 10;
+            font-size: 1rem;
+            color: #FFD100;
+            font-weight: 600;
+            letter-spacing: 1px;
         }
         
         /* ПРАВАЯ ПОЛОВИНА ЭКРАНА - ПОЕЗД */
@@ -363,6 +381,37 @@
             to { transform: rotate(360deg); }
         }
         
+        /* Анимация перелистывания */
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-out {
+            animation: slideOut 0.5s ease forwards;
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease forwards;
+        }
+        
         @media (max-width: 900px) {
             .main-content {
                 flex-direction: column;
@@ -399,6 +448,11 @@
                 padding-left: 60px;
                 font-size: 1.3rem;
                 min-height: 35px;
+            }
+            
+            .page-indicator {
+                font-size: 0.9rem;
+                bottom: 10px;
             }
         }
         
@@ -458,6 +512,11 @@
             .legend-text {
                 font-size: 0.8rem;
             }
+            
+            .page-indicator {
+                font-size: 0.85rem;
+                padding-top: 8px;
+            }
         }
     </style>
 </head>
@@ -498,6 +557,9 @@
                 <div class="stops-columns-container" id="stopsColumnsContainer">
                     <div class="stops-columns" id="stopsColumns">
                         <!-- Две колонки будут созданы динамически -->
+                    </div>
+                    <div class="page-indicator" id="pageIndicator" style="display: none;">
+                        Page <span id="currentPage">1</span>/<span id="totalPages">1</span>
                     </div>
                 </div>
             </div>
@@ -547,6 +609,13 @@
         let currentTripData = null;
         let currentDepartures = [];
         
+        // Переменные для управления перелистыванием
+        let stopPages = []; // Массив страниц с остановками
+        let currentPageIndex = 0;
+        let pageFlipInterval = null;
+        const STOPS_PER_COLUMN = 7; // Максимум 7 остановок на колонку
+        const PAGE_FLIP_INTERVAL = 5000; // 5 секунд
+        
         // Функция для получения параметров из URL
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
@@ -578,6 +647,7 @@
             hideElement('loading');
             hideElement('mainContent');
             hideElement('trainHeader');
+            clearPageFlipInterval();
         }
         
         // Обновить текущее время
@@ -613,6 +683,136 @@
             if (!timeStr) return '--:--';
             const [hours, minutes] = timeStr.split(':');
             return `${hours}:${minutes}`;
+        }
+        
+        // Очистить интервал перелистывания
+        function clearPageFlipInterval() {
+            if (pageFlipInterval) {
+                clearInterval(pageFlipInterval);
+                pageFlipInterval = null;
+            }
+        }
+        
+        // Переключить на следующую страницу
+        function nextPage() {
+            if (stopPages.length <= 1) return;
+            
+            const stopsColumns = document.getElementById('stopsColumns');
+            const currentPage = document.getElementById('currentPage');
+            
+            // Анимация исчезновения
+            stopsColumns.classList.add('slide-out');
+            
+            setTimeout(() => {
+                // Переключить страницу
+                currentPageIndex = (currentPageIndex + 1) % stopPages.length;
+                
+                // Обновить отображение
+                displayStopPage(currentPageIndex);
+                
+                // Обновить индикатор страницы
+                currentPage.textContent = currentPageIndex + 1;
+                
+                // Анимация появления
+                stopsColumns.classList.remove('slide-out');
+                stopsColumns.classList.add('slide-in');
+                
+                setTimeout(() => {
+                    stopsColumns.classList.remove('slide-in');
+                }, 500);
+            }, 300);
+        }
+        
+        // Отобразить страницу остановок
+        function displayStopPage(pageIndex) {
+            const stopsColumns = document.getElementById('stopsColumns');
+            
+            if (!stopPages[pageIndex]) {
+                stopsColumns.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%; padding: 20px;">Aucun arrêt disponible</div>';
+                return;
+            }
+            
+            const page = stopPages[pageIndex];
+            stopsColumns.innerHTML = '';
+            
+            // Создать две колонки
+            const column1 = document.createElement('div');
+            column1.className = 'stop-column';
+            
+            const column2 = document.createElement('div');
+            column2.className = 'stop-column';
+            
+            // Распределить остановки по колонкам ВЕРТИКАЛЬНО
+            // Первая колонка: первые STOPS_PER_COLUMN остановок
+            const firstColumnStops = page.slice(0, STOPS_PER_COLUMN);
+            const secondColumnStops = page.slice(STOPS_PER_COLUMN, STOPS_PER_COLUMN * 2);
+            
+            // Первая колонка
+            firstColumnStops.forEach((stop, index) => {
+                const stopItem = createStopItem(stop, index === 0); // Первая остановка выделена
+                column1.appendChild(stopItem);
+            });
+            
+            // Вторая колонка
+            secondColumnStops.forEach((stop) => {
+                const stopItem = createStopItem(stop, false);
+                column2.appendChild(stopItem);
+            });
+            
+            stopsColumns.appendChild(column1);
+            stopsColumns.appendChild(column2);
+            
+            // Показать индикатор страницы, если страниц больше 1
+            const pageIndicator = document.getElementById('pageIndicator');
+            const totalPages = document.getElementById('totalPages');
+            
+            if (stopPages.length > 1) {
+                totalPages.textContent = stopPages.length;
+                pageIndicator.style.display = 'block';
+            } else {
+                pageIndicator.style.display = 'none';
+            }
+        }
+        
+        // Функция создания элемента остановки
+        function createStopItem(stop, isFirst) {
+            const stopItem = document.createElement('div');
+            stopItem.className = 'stop-item';
+            
+            // Точка остановки
+            const stopDot = document.createElement('div');
+            stopDot.className = 'stop-dot';
+            
+            // Название остановки
+            const stopName = document.createElement('div');
+            stopName.className = 'stop-name';
+            stopName.textContent = stop.stop_name || `Arrêt ${stop.stop_id}`;
+            
+            if (isFirst) {
+                stopDot.style.background = '#FFD100';
+                stopDot.style.boxShadow = '0 0 0 2px #FFD100';
+                stopName.style.color = '#FFD100';
+                stopName.style.fontWeight = '700';
+            }
+            
+            stopItem.appendChild(stopDot);
+            stopItem.appendChild(stopName);
+            
+            return stopItem;
+        }
+        
+        // Разбить остановки на страницы
+        function createStopPages(stops) {
+            const pages = [];
+            const maxStopsPerPage = STOPS_PER_COLUMN * 2; // 7 на колонку × 2 колонки = 14 остановок на страницу
+            
+            // Разбить на страницы по 14 остановок
+            for (let i = 0; i < stops.length; i += maxStopsPerPage) {
+                const page = stops.slice(i, i + maxStopsPerPage);
+                pages.push(page);
+            }
+            
+            return pages;
         }
         
         // Загрузить отправления от остановки
@@ -826,12 +1026,17 @@
             }
         }
         
-        // Отобразить следующие остановки в двух колонках
+        // Отобразить следующие остановки с пагинацией
         function displayNextStops(tripData, currentStopId) {
-            const stopsColumns = document.getElementById('stopsColumns');
-            stopsColumns.innerHTML = '';
+            // Очистить предыдущий интервал перелистывания
+            clearPageFlipInterval();
+            
+            // Сбросить переменные пагинации
+            stopPages = [];
+            currentPageIndex = 0;
             
             if (!tripData.stops || !Array.isArray(tripData.stops)) {
+                const stopsColumns = document.getElementById('stopsColumns');
                 stopsColumns.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%; padding: 20px;">Aucun arrêt disponible</div>';
                 return;
             }
@@ -847,65 +1052,31 @@
             const currentIndex = sortedStops.findIndex(stop => stop.stop_id === currentStopId);
             
             if (currentIndex === -1 || currentIndex >= sortedStops.length - 1) {
+                const stopsColumns = document.getElementById('stopsColumns');
                 stopsColumns.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%; padding: 20px;">Aucun arrêt suivant disponible</div>';
                 return;
             }
             
-            // Отобразить следующие остановки, начиная со СЛЕДУЮЩЕЙ после текущей
+            // Получить следующие остановки, начиная со СЛЕДУЮЩЕЙ после текущей
             const nextStops = sortedStops.slice(currentIndex + 1);
             
             // Если нет следующих остановок
             if (nextStops.length === 0) {
+                const stopsColumns = document.getElementById('stopsColumns');
                 stopsColumns.innerHTML = '<div style="color: #a0c8ff; text-align: center; width: 100%; padding: 20px;">Terminus</div>';
                 return;
             }
             
-            // Создать две колонки
-            const column1 = document.createElement('div');
-            column1.className = 'stop-column';
+            // Создать страницы остановок
+            stopPages = createStopPages(nextStops);
             
-            const column2 = document.createElement('div');
-            column2.className = 'stop-column';
+            // Отобразить первую страницу
+            displayStopPage(0);
             
-            // Распределить остановки по колонкам ВЕРТИКАЛЬНО
-            const middleIndex = Math.ceil(nextStops.length / 2);
-            
-            // Первая колонка: первая половина остановок
-            for (let i = 0; i < middleIndex; i++) {
-                const stop = nextStops[i];
-                const stopItem = createStopItem(stop);
-                column1.appendChild(stopItem);
+            // Запустить автоматическое перелистывание, если страниц больше 1
+            if (stopPages.length > 1) {
+                pageFlipInterval = setInterval(nextPage, PAGE_FLIP_INTERVAL);
             }
-            
-            // Вторая колонка: вторая половина остановок
-            for (let i = middleIndex; i < nextStops.length; i++) {
-                const stop = nextStops[i];
-                const stopItem = createStopItem(stop);
-                column2.appendChild(stopItem);
-            }
-            
-            stopsColumns.appendChild(column1);
-            stopsColumns.appendChild(column2);
-        }
-        
-        // Функция создания элемента остановки
-        function createStopItem(stop) {
-            const stopItem = document.createElement('div');
-            stopItem.className = 'stop-item';
-            
-            // Точка остановки
-            const stopDot = document.createElement('div');
-            stopDot.className = 'stop-dot';
-            
-            // Название остановки
-            const stopName = document.createElement('div');
-            stopName.className = 'stop-name';
-            stopName.textContent = stop.stop_name || `Arrêt ${stop.stop_id}`;
-            
-            stopItem.appendChild(stopDot);
-            stopItem.appendChild(stopName);
-            
-            return stopItem;
         }
         
         // Загрузить и отобразить данные
@@ -926,6 +1097,9 @@
                 hideElement('error');
                 hideElement('mainContent');
                 hideElement('trainHeader');
+                
+                // Очистить интервал перелистывания
+                clearPageFlipInterval();
                 
                 // Загрузить отправления
                 currentDepartures = await loadStopDepartures(currentStopId);
@@ -979,6 +1153,11 @@
             
             console.log('Монитор SNCF инициализирован');
         }
+        
+        // Очистить интервал при закрытии страницы
+        window.addEventListener('beforeunload', function() {
+            clearPageFlipInterval();
+        });
         
         document.addEventListener('DOMContentLoaded', init);
     </script>
