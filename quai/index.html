@@ -106,9 +106,10 @@
             padding: 25px;
             background: #003A7A;
             border-right: 2px solid #0051A9;
-            overflow: hidden; /* Изменил на hidden, чтобы не было двойной прокрутки */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
+            position: relative; /* Для индикатора страницы */
         }
         
         .stops-title {
@@ -125,44 +126,38 @@
         
         .stops-columns-container {
             flex: 1;
-            overflow-y: auto; /* Автоматическая прокрутка */
+            overflow-y: auto;
             overflow-x: hidden;
-            padding-right: 5px;
             position: relative;
         }
         
+        /* Убираем желтую полосу прокрутки */
         .stops-columns-container::-webkit-scrollbar {
-            width: 8px;
+            display: none;
         }
         
-        .stops-columns-container::-webkit-scrollbar-track {
-            background: #002A5C;
-            border-radius: 4px;
-        }
-        
-        .stops-columns-container::-webkit-scrollbar-thumb {
-            background: #FFD100;
-            border-radius: 4px;
+        .stops-columns-container {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
         }
         
         .stops-columns {
             display: flex;
             gap: 40px;
-            min-height: 100%;
+            height: 100%;
         }
         
         .stop-column {
             flex: 1;
             position: relative;
-            min-height: 100%; /* Добавил для корректного отображения линии */
+            height: 100%;
         }
         
-        /* Вертикальная соединительная линия - ИСПРАВЛЕННЫЙ СТИЛЬ */
+        /* Вертикальная соединительная линия */
         .stop-column::after {
             content: '';
             position: absolute;
             top: 0;
-            bottom: 50px; /* ВЕРНУЛИ эту строку */
             left: 9px;
             width: 17px;
             background: #1700ff94;
@@ -173,14 +168,13 @@
         .stop-column:nth-child(2)::after {
             top: 15px;
             left: 9.5px;
-            bottom: 50px; /* Добавил для второй колонки */
         }
         
         .stop-item {
             position: relative;
             padding: 4px 0;
             margin-bottom: 3px;
-            min-height: 40px; /* Увеличил высоту для лучшего вида */
+            min-height: 40px;
         }
         
         /* Точки остановок */
@@ -208,21 +202,20 @@
             align-items: center;
         }
         
-        /* Индикатор страницы */
+        /* Индикатор страницы - правый нижний угол */
         .page-indicator {
             position: absolute;
             bottom: 15px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            padding-top: 10px;
-            border-top: 1px dashed #0051A9;
+            right: 15px;
             background: rgba(0, 42, 92, 0.8);
-            z-index: 10;
-            font-size: 1rem;
             color: #FFD100;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
             font-weight: 600;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            z-index: 10;
+            border: 1px solid #0051A9;
         }
         
         /* ПРАВАЯ ПОЛОВИНА ЭКРАНА - ПОЕЗД */
@@ -382,34 +375,22 @@
         }
         
         /* Анимация перелистывания */
-        @keyframes slideOut {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
         }
         
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
-        .slide-out {
-            animation: slideOut 0.5s ease forwards;
+        .fade-out {
+            animation: fadeOut 0.3s ease forwards;
         }
         
-        .slide-in {
-            animation: slideIn 0.5s ease forwards;
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
         }
         
         @media (max-width: 900px) {
@@ -428,7 +409,7 @@
                 height: 65px;
             }
             
-            /* Адаптация для мобильных устройств */
+            /* Адаптация для мобильных устройств - линии */
             .stop-column::after {
                 left: 15px;
                 width: 15px;
@@ -451,8 +432,10 @@
             }
             
             .page-indicator {
-                font-size: 0.9rem;
                 bottom: 10px;
+                right: 10px;
+                font-size: 0.85rem;
+                padding: 4px 8px;
             }
         }
         
@@ -474,7 +457,7 @@
                 gap: 20px;
             }
             
-            /* Адаптация для мобильных устройств */
+            /* Адаптация для мобильных устройств - линии */
             .stop-column::after {
                 left: 20px;
                 width: 15px;
@@ -482,6 +465,7 @@
             
             .stop-column:nth-child(2)::after {
                 left: 20.5px;
+                top: 0; /* На мобильных убираем смещение для второй колонки */
             }
             
             .stop-dot {
@@ -514,8 +498,8 @@
             }
             
             .page-indicator {
-                font-size: 0.85rem;
-                padding-top: 8px;
+                font-size: 0.8rem;
+                padding: 3px 6px;
             }
         }
     </style>
@@ -559,7 +543,7 @@
                         <!-- Две колонки будут созданы динамически -->
                     </div>
                     <div class="page-indicator" id="pageIndicator" style="display: none;">
-                        Page <span id="currentPage">1</span>/<span id="totalPages">1</span>
+                        <span id="currentPage">1</span>/<span id="totalPages">1</span>
                     </div>
                 </div>
             </div>
@@ -701,7 +685,7 @@
             const currentPage = document.getElementById('currentPage');
             
             // Анимация исчезновения
-            stopsColumns.classList.add('slide-out');
+            stopsColumns.classList.add('fade-out');
             
             setTimeout(() => {
                 // Переключить страницу
@@ -714,13 +698,27 @@
                 currentPage.textContent = currentPageIndex + 1;
                 
                 // Анимация появления
-                stopsColumns.classList.remove('slide-out');
-                stopsColumns.classList.add('slide-in');
-                
                 setTimeout(() => {
-                    stopsColumns.classList.remove('slide-in');
-                }, 500);
-            }, 300);
+                    stopsColumns.classList.remove('fade-out');
+                    stopsColumns.classList.add('fade-in');
+                    
+                    setTimeout(() => {
+                        stopsColumns.classList.remove('fade-in');
+                    }, 300);
+                }, 50);
+            }, 200);
+        }
+        
+        // Функция для расчета и установки высоты линии
+        function setLineHeight(column, stopCount) {
+            if (!column || stopCount === 0) return;
+            
+            // Высота одной остановки примерно 40px
+            // Линия должна заканчиваться в центре последней точки
+            const lineHeight = stopCount * 40 - 20; // -20px чтобы закончиться на середине последней точки
+            
+            // Устанавливаем высоту через инлайн-стиль
+            column.style.height = `${lineHeight}px`;
         }
         
         // Отобразить страницу остановок
@@ -748,26 +746,34 @@
             const secondColumnStops = page.slice(STOPS_PER_COLUMN, STOPS_PER_COLUMN * 2);
             
             // Первая колонка
-            firstColumnStops.forEach((stop, index) => {
-                const stopItem = createStopItem(stop, index === 0); // Первая остановка выделена
+            firstColumnStops.forEach((stop) => {
+                const stopItem = createStopItem(stop);
                 column1.appendChild(stopItem);
             });
             
             // Вторая колонка
             secondColumnStops.forEach((stop) => {
-                const stopItem = createStopItem(stop, false);
+                const stopItem = createStopItem(stop);
                 column2.appendChild(stopItem);
             });
             
             stopsColumns.appendChild(column1);
             stopsColumns.appendChild(column2);
             
+            // Установить высоту линий после добавления элементов
+            setTimeout(() => {
+                setLineHeight(column1, firstColumnStops.length);
+                setLineHeight(column2, secondColumnStops.length);
+            }, 10);
+            
             // Показать индикатор страницы, если страниц больше 1
             const pageIndicator = document.getElementById('pageIndicator');
             const totalPages = document.getElementById('totalPages');
+            const currentPage = document.getElementById('currentPage');
             
             if (stopPages.length > 1) {
                 totalPages.textContent = stopPages.length;
+                currentPage.textContent = pageIndex + 1;
                 pageIndicator.style.display = 'block';
             } else {
                 pageIndicator.style.display = 'none';
@@ -775,7 +781,7 @@
         }
         
         // Функция создания элемента остановки
-        function createStopItem(stop, isFirst) {
+        function createStopItem(stop) {
             const stopItem = document.createElement('div');
             stopItem.className = 'stop-item';
             
@@ -787,13 +793,6 @@
             const stopName = document.createElement('div');
             stopName.className = 'stop-name';
             stopName.textContent = stop.stop_name || `Arrêt ${stop.stop_id}`;
-            
-            if (isFirst) {
-                stopDot.style.background = '#FFD100';
-                stopDot.style.boxShadow = '0 0 0 2px #FFD100';
-                stopName.style.color = '#FFD100';
-                stopName.style.fontWeight = '700';
-            }
             
             stopItem.appendChild(stopDot);
             stopItem.appendChild(stopName);
