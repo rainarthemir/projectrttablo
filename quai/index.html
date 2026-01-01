@@ -106,7 +106,6 @@
             padding: 25px;
             background: #003A7A;
             border-right: 2px solid #0051A9;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
             position: relative; /* Для индикатора страницы */
@@ -126,19 +125,8 @@
         
         .stops-columns-container {
             flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow: hidden; /* Убираем прокрутку */
             position: relative;
-        }
-        
-        /* Убираем желтую полосу прокрутки */
-        .stops-columns-container::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .stops-columns-container {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
         }
         
         .stops-columns {
@@ -150,24 +138,17 @@
         .stop-column {
             flex: 1;
             position: relative;
-            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
         
         /* Вертикальная соединительная линия */
-        .stop-column::after {
-            content: '';
+        .stop-column .line {
             position: absolute;
-            top: 0;
-            left: 9px;
-            width: 17px;
+            left: 17px; /* Центр относительно точки (8px + 20px/2) */
+            width: 2px;
             background: #1700ff94;
             z-index: 1;
-        }
-        
-        /* Для второй колонки сместим линию */
-        .stop-column:nth-child(2)::after {
-            top: 15px;
-            left: 9.5px;
         }
         
         .stop-item {
@@ -175,6 +156,7 @@
             padding: 4px 0;
             margin-bottom: 3px;
             min-height: 40px;
+            flex-shrink: 0;
         }
         
         /* Точки остановок */
@@ -207,7 +189,7 @@
             position: absolute;
             bottom: 15px;
             right: 15px;
-            background: rgba(0, 42, 92, 0.8);
+            background: rgba(0, 42, 92, 0.9);
             color: #FFD100;
             padding: 6px 12px;
             border-radius: 4px;
@@ -391,116 +373,6 @@
         
         .fade-in {
             animation: fadeIn 0.3s ease forwards;
-        }
-        
-        @media (max-width: 900px) {
-            .main-content {
-                flex-direction: column;
-            }
-            
-            .stops-section {
-                max-height: 250px;
-                border-right: none;
-                border-bottom: 2px solid #0051A9;
-            }
-            
-            .train-item {
-                width: 65px;
-                height: 65px;
-            }
-            
-            /* Адаптация для мобильных устройств - линии */
-            .stop-column::after {
-                left: 15px;
-                width: 15px;
-            }
-            
-            .stop-column:nth-child(2)::after {
-                left: 15.5px;
-            }
-            
-            .stop-dot {
-                left: 12px;
-                width: 18px;
-                height: 18px;
-            }
-            
-            .stop-name {
-                padding-left: 60px;
-                font-size: 1.3rem;
-                min-height: 35px;
-            }
-            
-            .page-indicator {
-                bottom: 10px;
-                right: 10px;
-                font-size: 0.85rem;
-                padding: 4px 8px;
-            }
-        }
-        
-        @media (max-width: 600px) {
-            .header {
-                flex-direction: column;
-                text-align: center;
-                gap: 15px;
-            }
-            
-            .train-header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            
-            .stops-columns {
-                flex-direction: column;
-                gap: 20px;
-            }
-            
-            /* Адаптация для мобильных устройств - линии */
-            .stop-column::after {
-                left: 20px;
-                width: 15px;
-            }
-            
-            .stop-column:nth-child(2)::after {
-                left: 20.5px;
-                top: 0; /* На мобильных убираем смещение для второй колонки */
-            }
-            
-            .stop-dot {
-                left: 17px;
-                width: 18px;
-                height: 18px;
-            }
-            
-            .stop-name {
-                padding-left: 65px;
-                font-size: 1.2rem;
-                min-height: 30px;
-            }
-            
-            .train-item {
-                width: 55px;
-                height: 55px;
-            }
-            
-            .crowd-legend {
-                gap: 15px;
-            }
-            
-            .legend-item {
-                gap: 5px;
-            }
-            
-            .legend-text {
-                font-size: 0.8rem;
-            }
-            
-            .page-indicator {
-                font-size: 0.8rem;
-                padding: 3px 6px;
-            }
         }
     </style>
 </head>
@@ -709,16 +581,25 @@
             }, 200);
         }
         
-        // Функция для расчета и установки высоты линии
-        function setLineHeight(column, stopCount) {
-            if (!column || stopCount === 0) return;
+        // Функция для создания линии с правильной высотой
+        function createLineForColumn(column, stopCount) {
+            if (stopCount <= 1) return null; // Не нужна линия для 0 или 1 остановки
             
-            // Высота одной остановки примерно 40px
-            // Линия должна заканчиваться в центре последней точки
-            const lineHeight = stopCount * 40 - 20; // -20px чтобы закончиться на середине последней точки
+            const line = document.createElement('div');
+            line.className = 'line';
             
-            // Устанавливаем высоту через инлайн-стиль
-            column.style.height = `${lineHeight}px`;
+            // Высота одной остановки примерно 40px (min-height 40px + отступы)
+            // Линия должна идти от центра первой точки до центра последней точки
+            // Первая точка на 50% высоты первого элемента (20px от верха)
+            // Последняя точка на 50% высоты последнего элемента
+            const lineHeight = (stopCount - 1) * 40; // -1 потому что от центра до центра
+            
+            // Начальная позиция - центр первой точки (50% от высоты первого элемента)
+            line.style.top = '20px'; // 50% от 40px = 20px
+            line.style.height = `${lineHeight}px`;
+            
+            column.appendChild(line);
+            return line;
         }
         
         // Отобразить страницу остановок
@@ -757,14 +638,25 @@
                 column2.appendChild(stopItem);
             });
             
+            // Добавить линии после добавления всех элементов
+            if (firstColumnStops.length > 1) {
+                createLineForColumn(column1, firstColumnStops.length);
+            }
+            
+            if (secondColumnStops.length > 1) {
+                createLineForColumn(column2, secondColumnStops.length);
+            }
+            
+            // Если во второй колонке есть остановки, добавим смещение для линии
+            if (secondColumnStops.length > 0) {
+                const line = column2.querySelector('.line');
+                if (line) {
+                    line.style.left = '9.5px'; // Смещение для второй колонки
+                }
+            }
+            
             stopsColumns.appendChild(column1);
             stopsColumns.appendChild(column2);
-            
-            // Установить высоту линий после добавления элементов
-            setTimeout(() => {
-                setLineHeight(column1, firstColumnStops.length);
-                setLineHeight(column2, secondColumnStops.length);
-            }, 10);
             
             // Показать индикатор страницы, если страниц больше 1
             const pageIndicator = document.getElementById('pageIndicator');
